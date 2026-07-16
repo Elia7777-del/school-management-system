@@ -1,0 +1,9 @@
+/vendor/
+.env
+.htaccess_local
+/public/uploads/
+.DS_Store
+.idea/
+.vscode/
+*.log
+config.local.php
