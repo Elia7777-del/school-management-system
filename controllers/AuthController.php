@@ -30,7 +30,23 @@ class AuthController {
                 redirect('login');
             }
 
+            // First, try finding the user by regular username
             $user = $this->userModel->findByUsername($username);
+
+            // If not found, check if the input is an admission number
+            if (!$user) {
+                $studentModel = new Student();
+                // We need to find by admission number, so let's add that method if not exists, or just query here.
+                // Wait, it's safer to just query here since we don't know if findByAdmissionNumber exists.
+                $db = Database::getInstance()->getConnection();
+                $stmt = $db->prepare("SELECT user_id FROM students WHERE admission_number = ? AND deleted_at IS NULL");
+                $stmt->execute([$username]);
+                $studentRecord = $stmt->fetch();
+                
+                if ($studentRecord && $studentRecord['user_id']) {
+                    $user = $this->userModel->findById($studentRecord['user_id']);
+                }
+            }
 
             if ($user && password_verify($password, $user['password'])) {
                 if ($user['status'] !== 'active') {
@@ -41,6 +57,7 @@ class AuthController {
                 $this->userModel->updateLastLogin($user['id']);
                 setUserSession($user);
                 clearOldInput();
+                logActivity('login', 'User logged in: ' . $user['username'] . ' (Role: ' . $user['role_name'] . ')');
                 redirect('dashboard');
             } else {
                 setFlash('error', 'Invalid username or password.');
@@ -56,6 +73,7 @@ class AuthController {
     }
 
     public function logout() {
+        logActivity('logout', 'User logged out: ' . (currentUser()['username'] ?? 'unknown'));
         destroyUserSession();
         redirect('login');
     }

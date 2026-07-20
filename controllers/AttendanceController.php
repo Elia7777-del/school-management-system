@@ -75,6 +75,7 @@ class AttendanceController {
             }
 
             $this->attendanceModel->bulkRecord($records);
+            logActivity('attendance', 'Recorded attendance for Class #' . $classId . ' on ' . $date . ' (' . count($records) . ' students)');
             setFlash('success', 'Attendance recorded successfully for class on ' . formatDate($date));
             redirect('attendance?class_id=' . $classId . '&date=' . $date);
         }

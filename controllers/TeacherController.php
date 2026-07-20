@@ -35,6 +35,10 @@ class TeacherController {
     public function create() {
         $subjects = $this->subjectModel->getAll();
         $classes = $this->classModel->getAll();
+        
+        $userModel = new User();
+        $allUsers = $userModel->getAll('', 1, 100);
+
         $pageTitle = 'Add Teacher';
         require_once APP_ROOT . '/views/layouts/header.php';
         require_once APP_ROOT . '/views/teachers/create.php';
@@ -56,7 +60,8 @@ class TeacherController {
                 'email' => sanitize($_POST['email'] ?? ''),
                 'qualification' => sanitize($_POST['qualification'] ?? ''),
                 'specialization' => sanitize($_POST['specialization'] ?? ''),
-                'join_date' => sanitize($_POST['join_date'] ?? date('Y-m-d'))
+                'join_date' => sanitize($_POST['join_date'] ?? date('Y-m-d')),
+                'user_id' => !empty($_POST['user_id']) ? (int)$_POST['user_id'] : null
             ];
 
             if (empty($data['first_name']) || empty($data['last_name']) || empty($data['phone'])) {
@@ -100,6 +105,16 @@ class TeacherController {
                 }
             }
 
+            // Assign classes
+            $activeYear = getActiveAcademicYear($db);
+            $yearId = $activeYear['id'] ?? 0;
+            if ($yearId > 0 && !empty($_POST['classes'])) {
+                foreach ($_POST['classes'] as $classId) {
+                    $isClassTeacher = !empty($_POST['class_teacher'][$classId]) ? 1 : 0;
+                    $this->teacherModel->assignClass($teacherId, $classId, $yearId, $isClassTeacher);
+                }
+            }
+
             setFlash('success', 'Teacher added successfully. TSC Number: ' . $data['teacher_number']);
             clearOldInput();
             redirect('teachers');
@@ -133,6 +148,26 @@ class TeacherController {
             setFlash('error', 'Teacher not found.');
             redirect('teachers');
         }
+        
+        $activeYear = getActiveAcademicYear(Database::getInstance()->getConnection());
+        $yearId = $activeYear['id'] ?? 0;
+
+        $allSubjects = $this->subjectModel->getAll();
+        $allClasses = $this->classModel->getAll();
+        
+        $teacherSubjects = $this->teacherModel->getSubjects($id);
+        $assignedSubjectIds = array_column($teacherSubjects, 'id');
+        
+        $teacherClasses = $this->teacherModel->getClasses($id, $yearId);
+        // Create an associative array for easy checking: class_id => is_class_teacher
+        $assignedClasses = [];
+        foreach ($teacherClasses as $tc) {
+            $assignedClasses[$tc['class_id']] = $tc['is_class_teacher'];
+        }
+        
+        $userModel = new User();
+        $allUsers = $userModel->getAll('', 1, 100);
+        
         $pageTitle = 'Edit Teacher';
         require_once APP_ROOT . '/views/layouts/header.php';
         require_once APP_ROOT . '/views/teachers/edit.php';
@@ -155,10 +190,40 @@ class TeacherController {
                 'email' => sanitize($_POST['email'] ?? ''),
                 'qualification' => sanitize($_POST['qualification'] ?? ''),
                 'specialization' => sanitize($_POST['specialization'] ?? ''),
-                'status' => sanitize($_POST['status'] ?? 'active')
+                'status' => sanitize($_POST['status'] ?? 'active'),
+                'user_id' => !empty($_POST['user_id']) ? (int)$_POST['user_id'] : null
             ];
 
             $this->teacherModel->update($id, $data);
+            
+            // Update subjects
+            $db = Database::getInstance()->getConnection();
+            $stmt = $db->prepare("DELETE FROM teacher_subjects WHERE teacher_id = ?");
+            $stmt->execute([$id]);
+            if (!empty($_POST['subjects'])) {
+                foreach ($_POST['subjects'] as $subjectId) {
+                    $this->teacherModel->assignSubject($id, $subjectId);
+                }
+            }
+
+            // Update classes
+            $activeYear = getActiveAcademicYear($db);
+            $yearId = $activeYear['id'] ?? 0;
+            if ($yearId > 0) {
+                // Remove existing class assignments for this academic year
+                $stmt = $db->prepare("DELETE FROM teacher_classes WHERE teacher_id = ? AND academic_year_id = ?");
+                $stmt->execute([$id, $yearId]);
+                
+                // Assign new ones
+                if (!empty($_POST['classes'])) {
+                    foreach ($_POST['classes'] as $classId) {
+                        // Check if this class is selected as class teacher
+                        $isClassTeacher = !empty($_POST['class_teacher'][$classId]) ? 1 : 0;
+                        $this->teacherModel->assignClass($id, $classId, $yearId, $isClassTeacher);
+                    }
+                }
+            }
+            
             setFlash('success', 'Teacher details updated.');
             redirect('teachers');
         }

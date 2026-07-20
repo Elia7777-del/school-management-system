@@ -37,6 +37,8 @@ class StudentController {
 
     public function create() {
         $classes = $this->classModel->getAll();
+        $db = Database::getInstance()->getConnection();
+        $suggestedAdmNumber = generateAdmissionNumber($db);
         $pageTitle = 'Add Student';
         require_once APP_ROOT . '/views/layouts/header.php';
         require_once APP_ROOT . '/views/students/create.php';
@@ -60,7 +62,7 @@ class StudentController {
                 'education_level' => sanitize($_POST['education_level'] ?? ''),
                 'phone' => sanitize($_POST['phone'] ?? ''),
                 'address' => sanitize($_POST['address'] ?? ''),
-                'admission_date' => date('Y-m-d')
+                'admission_date' => sanitize($_POST['admission_date'] ?? date('Y-m-d'))
             ];
 
             // Validate
@@ -71,7 +73,14 @@ class StudentController {
             }
 
             $db = Database::getInstance()->getConnection();
-            $data['admission_number'] = generateAdmissionNumber($db);
+            
+            // Use admin-provided admission number or auto-generate
+            $adminAdmNumber = trim(sanitize($_POST['admission_number'] ?? ''));
+            if (!empty($adminAdmNumber)) {
+                $data['admission_number'] = $adminAdmNumber;
+            } else {
+                $data['admission_number'] = generateAdmissionNumber($db);
+            }
 
             // Create User Account if requested
             if (!empty($_POST['create_account'])) {
@@ -132,6 +141,7 @@ class StudentController {
             }
 
             $data = [
+                'admission_number' => sanitize($_POST['admission_number'] ?? ''),
                 'first_name' => sanitize($_POST['first_name'] ?? ''),
                 'middle_name' => sanitize($_POST['middle_name'] ?? ''),
                 'last_name' => sanitize($_POST['last_name'] ?? ''),

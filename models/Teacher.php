@@ -75,7 +75,7 @@ class Teacher {
     }
 
     public function update($id, $data) {
-        $stmt = $this->db->prepare("UPDATE teachers SET first_name = ?, last_name = ?, gender = ?, phone = ?, email = ?, qualification = ?, specialization = ?, status = ? WHERE id = ?");
+        $stmt = $this->db->prepare("UPDATE teachers SET first_name = ?, last_name = ?, gender = ?, phone = ?, email = ?, qualification = ?, specialization = ?, status = ?, user_id = ? WHERE id = ?");
         return $stmt->execute([
             $data['first_name'],
             $data['last_name'],
@@ -85,6 +85,7 @@ class Teacher {
             $data['qualification'],
             $data['specialization'],
             $data['status'],
+            $data['user_id'],
             $id
         ]);
     }

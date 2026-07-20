@@ -44,8 +44,11 @@ class ExamResult {
         $this->db->beginTransaction();
         try {
             foreach ($marksData as $studentId => $marks) {
-                if ($marks === '' || $marks === null) continue;
-                $this->storeMarks($examId, $studentId, $subjectId, (float)$marks, $educationLevel);
+                if ($marks === '' || $marks === null) {
+                    $this->deleteMark($examId, $studentId, $subjectId);
+                } else {
+                    $this->storeMarks($examId, $studentId, $subjectId, (float)$marks, $educationLevel);
+                }
             }
             $this->db->commit();
             return true;
@@ -53,6 +56,11 @@ class ExamResult {
             $this->db->rollBack();
             throw $e;
         }
+    }
+
+    public function deleteMark($examId, $studentId, $subjectId) {
+        $stmt = $this->db->prepare("DELETE FROM exam_results WHERE exam_id = ? AND student_id = ? AND subject_id = ?");
+        return $stmt->execute([$examId, $studentId, $subjectId]);
     }
 
     public function getClassResults($examId) {
@@ -66,5 +74,38 @@ class ExamResult {
         $stmt = $this->db->prepare("SELECT SUM(marks_obtained) as total, AVG(marks_obtained) as average, COUNT(*) as count FROM exam_results WHERE student_id = ? AND exam_id = ?");
         $stmt->execute([$studentId, $examId]);
         return $stmt->fetch();
+    }
+
+    public function getStudentRank($studentId, $examId) {
+        // Optimized rank calculation using subqueries for cross-version MySQL compatibility
+        $sql = "
+            SELECT 
+                1 + (
+                    SELECT COUNT(*) FROM (
+                        SELECT SUM(marks_obtained) as t 
+                        FROM exam_results 
+                        WHERE exam_id = ? 
+                        GROUP BY student_id
+                    ) as totals 
+                    WHERE t > IFNULL(student_totals.my_total, 0)
+                ) as rank,
+                (
+                    SELECT COUNT(DISTINCT student_id) 
+                    FROM exam_results 
+                    WHERE exam_id = ?
+                ) as total_students
+            FROM (
+                SELECT SUM(marks_obtained) as my_total 
+                FROM exam_results 
+                WHERE exam_id = ? AND student_id = ?
+            ) as student_totals
+        ";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$examId, $examId, $examId, $studentId]);
+        $result = $stmt->fetch();
+        return [
+            'rank' => (int)($result['rank'] ?? 0),
+            'total_students' => (int)($result['total_students'] ?? 0)
+        ];
     }
 }

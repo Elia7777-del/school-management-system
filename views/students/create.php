@@ -26,6 +26,20 @@
 
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
+                            <label class="form-label text-muted">Admission Number / Register Number</label>
+                            <input type="text" class="form-control" name="admission_number" 
+                                   placeholder="<?php echo $suggestedAdmNumber; ?>" 
+                                   value="">
+                            <small class="text-muted">Leave empty to auto-generate: <strong><?php echo $suggestedAdmNumber; ?></strong></small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted">Admission Date</label>
+                            <input type="date" class="form-control" name="admission_date" value="<?php echo date('Y-m-d'); ?>">
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
                             <label class="form-label text-muted">Gender</label>
                             <select class="form-select" name="gender" required>
                                 <option value="male">Male</option>

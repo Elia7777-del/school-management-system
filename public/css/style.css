@@ -3,8 +3,8 @@
     --bg-dark: #0f111a;
     --bg-dark-card: #161925;
     --border-color: #26293c;
-    --text-primary: #f8f9fa;
-    --text-secondary: #9aa0a6;
+    --text-primary: #ffffff;
+    --text-secondary: #adb5bd;
     --cyan: #00f0ff;
     --green: #00ff66;
     --purple: #bf5af2;
@@ -15,6 +15,9 @@
 
 .text-cyan { color: var(--cyan) !important; }
 .bg-cyan { background-color: var(--cyan) !important; }
+
+/* Override Bootstrap's text-muted to have better contrast on dark backgrounds */
+.text-muted { color: var(--text-secondary) !important; }
 
 body {
     background-color: var(--bg-dark);
@@ -152,24 +155,25 @@ body.has-sidebar {
 .text-red { color: var(--red); }
 
 /* Tables Custom styling */
-.table-dark-custom {
-    color: var(--text-primary);
+.table, .table-dark-custom {
+    color: var(--text-primary) !important;
 }
 
-.table-dark-custom th {
-    background-color: var(--bg-dark);
-    color: var(--text-secondary);
-    border-bottom: 2px solid var(--border-color);
+.table-dark-custom th, .table th {
+    background-color: var(--bg-dark) !important;
+    color: var(--text-secondary) !important;
+    border-bottom: 2px solid var(--border-color) !important;
     font-weight: 500;
 }
 
-.table-dark-custom td {
-    background-color: var(--bg-dark-card);
-    border-bottom: 1px solid var(--border-color);
+.table-dark-custom td, .table td {
+    background-color: var(--bg-dark-card) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    color: var(--text-primary) !important;
 }
 
-.table-dark-custom tr:hover td {
-    background-color: var(--border-color);
+.table-dark-custom tr:hover td, .table tr:hover td {
+    background-color: var(--border-color) !important;
 }
 
 /* Forms styling */
@@ -201,6 +205,49 @@ body.has-sidebar {
 .btn-green {
     background-color: var(--green);
     border-color: var(--green);
+    color: var(--bg-dark) !important;
+}
+
+.btn-green:hover {
+    background-color: #00e65c;
+    border-color: #00e65c;
+}
+
+/* Outline Buttons */
+.btn-outline-cyan {
+    color: var(--cyan) !important;
+    border-color: var(--cyan);
+}
+.btn-outline-cyan:hover {
+    background-color: var(--cyan);
+    color: var(--bg-dark) !important;
+}
+
+.btn-outline-green {
+    color: var(--green) !important;
+    border-color: var(--green);
+}
+.btn-outline-green:hover {
+    background-color: var(--green);
+    color: var(--bg-dark) !important;
+}
+
+.btn-outline-purple {
+    color: var(--purple) !important;
+    border-color: var(--purple);
+}
+.btn-outline-purple:hover {
+    background-color: var(--purple);
+    color: var(--bg-dark) !important;
+}
+
+.btn-outline-danger {
+    color: var(--red) !important;
+    border-color: var(--red);
+}
+.btn-outline-danger:hover {
+    background-color: var(--red);
+    color: white !important;
 }
 
 /* Auth Page layout */

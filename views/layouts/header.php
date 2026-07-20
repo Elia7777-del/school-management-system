@@ -13,7 +13,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>/css/style.css">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>/css/style.css?v=<?php echo time(); ?>">
 </head>
 <body class="<?php echo isLoggedIn() ? 'has-sidebar' : 'auth-page'; ?>">
 
@@ -82,6 +82,14 @@
                     </li>
                 <?php endif; ?>
 
+                <?php if (hasRole('student')): ?>
+                    <li class="nav-item">
+                        <a href="<?php echo BASE_URL; ?>/exams/my-results" class="nav-link <?php echo isActiveMenu('exams/my-results'); ?>">
+                            <i class="bi bi-award-fill me-3 text-warning"></i> My Results
+                        </a>
+                    </li>
+                <?php endif; ?>
+
                 <?php if (isAdmin()): ?>
                     <li class="nav-item">
                         <a href="<?php echo BASE_URL; ?>/fees" class="nav-link <?php echo isActiveMenu('fees'); ?>">
@@ -105,6 +113,11 @@
                     <li class="nav-item">
                         <a href="<?php echo BASE_URL; ?>/reports" class="nav-link <?php echo isActiveMenu('reports'); ?>">
                             <i class="bi bi-bar-chart-line-fill me-3"></i> Reports
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="<?php echo BASE_URL; ?>/audit" class="nav-link <?php echo isActiveMenu('audit'); ?>">
+                            <i class="bi bi-shield-check me-3"></i> Activity Logs
                         </a>
                     </li>
                 <?php endif; ?>

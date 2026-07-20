@@ -96,8 +96,9 @@ class Student {
     }
 
     public function update($id, $data) {
-        $stmt = $this->db->prepare("UPDATE students SET first_name = ?, middle_name = ?, last_name = ?, gender = ?, date_of_birth = ?, class_id = ?, education_level = ?, phone = ?, address = ?, status = ? WHERE id = ?");
+        $stmt = $this->db->prepare("UPDATE students SET admission_number = ?, first_name = ?, middle_name = ?, last_name = ?, gender = ?, date_of_birth = ?, class_id = ?, education_level = ?, phone = ?, address = ?, status = ? WHERE id = ?");
         return $stmt->execute([
+            $data['admission_number'],
             $data['first_name'],
             $data['middle_name'] ?? null,
             $data['last_name'],

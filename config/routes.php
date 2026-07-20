@@ -69,7 +69,10 @@ $routes = [
     'exams/store'               => ['ExamController', 'store'],
     'exams/marks'               => ['ExamController', 'enterMarks'],
     'exams/marks/store'         => ['ExamController', 'storeMarks'],
+    'exams/student-marks'       => ['ExamController', 'enterStudentMarks'],
+    'exams/student-marks/store' => ['ExamController', 'storeStudentMarks'],
     'exams/results'             => ['ExamController', 'results'],
+    'exams/my-results'          => ['ExamController', 'studentResults'],
     'exams/delete'              => ['ExamController', 'delete'],
 
     // ─── Fee Management ─────────────────────────────────────────
@@ -114,4 +117,7 @@ $routes = [
     'reports/exams'             => ['ReportController', 'exams'],
     'reports/fees'              => ['ReportController', 'fees'],
     'reports/classes'           => ['ReportController', 'classes'],
+
+    // ─── Audit Logs ─────────────────────────────────────────────
+    'audit'                     => ['AuditController', 'index'],
 ];

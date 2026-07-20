@@ -301,3 +301,136 @@ function getActiveSchoolTerm(PDO $db): ?array
     $stmt = $db->query("SELECT st.*, ay.year_name FROM school_terms st JOIN academic_years ay ON st.academic_year_id = ay.id WHERE st.is_active = 1 LIMIT 1");
     return $stmt->fetch() ?: null;
 }
+
+/**
+ * Log a user activity to the teacher_activity_logs table.
+ *
+ * @param string $actionType  Short action type: 'login', 'logout', 'marks_entry', 'attendance', 'page_view', 'data_change'
+ * @param string $description Human-readable description of what happened
+ */
+function logActivity(string $actionType, string $description): void
+{
+    if (!isLoggedIn()) return;
+
+    try {
+        $db = Database::getInstance()->getConnection();
+        $stmt = $db->prepare("INSERT INTO teacher_activity_logs (user_id, action_type, description, ip_address, request_url) VALUES (?, ?, ?, ?, ?)");
+        $stmt->execute([
+            currentUserId(),
+            $actionType,
+            $description,
+            $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1',
+            $_SERVER['REQUEST_URI'] ?? ''
+        ]);
+    } catch (Exception $e) {
+        // Silently fail — logging should never break the application
+        error_log('Activity log error: ' . $e->getMessage());
+    }
+}
+
+/**
+ * Check if a teacher has privilege to access a specific class/subject on the current day.
+ * Uses the timetable to enforce day-based access.
+ *
+ * @param int      $classId     Class ID to check
+ * @param int|null $subjectId   Subject ID to check (optional)
+ * @param string|null $dayOfWeek Day of week to check (defaults to today)
+ * @return bool
+ */
+function hasTeacherPrivilege(int $classId, ?int $subjectId = null, ?string $dayOfWeek = null): bool
+{
+    if (isAdmin()) return true; // Admins have full access
+
+    if (!hasRole('teacher')) return false;
+
+    $db = Database::getInstance()->getConnection();
+    $userId = currentUserId();
+
+    // Get the teacher record for this user
+    $stmt = $db->prepare("SELECT id FROM teachers WHERE user_id = ? AND deleted_at IS NULL");
+    $stmt->execute([$userId]);
+    $teacher = $stmt->fetch();
+    if (!$teacher) return false;
+
+    $teacherId = $teacher['id'];
+    $day = $dayOfWeek ?? date('l'); // e.g. 'Monday'
+
+    // Check if teacher is a class teacher for this class (full access)
+    $activeYear = getActiveAcademicYear($db);
+    $yearId = $activeYear['id'] ?? 0;
+
+    $stmt = $db->prepare("SELECT is_class_teacher FROM teacher_classes WHERE teacher_id = ? AND class_id = ? AND academic_year_id = ? AND is_class_teacher = 1");
+    $stmt->execute([$teacherId, $classId, $yearId]);
+    if ($stmt->fetch()) return true; // Class teacher has full access to the class
+
+    // Check timetable for day-based access
+    $sql = "SELECT id FROM timetables WHERE teacher_id = ? AND class_id = ? AND day_of_week = ?";
+    $params = [$teacherId, $classId, $day];
+
+    if ($subjectId !== null) {
+        $sql .= " AND subject_id = ?";
+        $params[] = $subjectId;
+    }
+
+    $activeTerm = getActiveSchoolTerm($db);
+    $termId = $activeTerm['id'] ?? 0;
+    $sql .= " AND academic_year_id = ? AND term_id = ?";
+    $params[] = $yearId;
+    $params[] = $termId;
+
+    $stmt = $db->prepare($sql);
+    $stmt->execute($params);
+    return (bool)$stmt->fetch();
+}
+
+/**
+ * Get Tanzanian primary education grade for a given marks value.
+ *
+ * @param float $marks Marks obtained
+ * @return string Grade letter
+ */
+if (!function_exists('getGradePrimary')) {
+    function getGradePrimary(float $marks): string
+    {
+        if ($marks >= 81) return 'A';
+        if ($marks >= 61) return 'B';
+        if ($marks >= 41) return 'C';
+        if ($marks >= 21) return 'D';
+        return 'F';
+    }
+}
+
+/**
+ * Get remarks for primary education grade.
+ *
+ * @param string $grade Grade letter
+ * @return string Remark text
+ */
+if (!function_exists('getRemarksPrimary')) {
+    function getRemarksPrimary(string $grade): string
+    {
+        $remarks = [
+            'A' => 'Excellent', 'B' => 'Very Good', 'C' => 'Good',
+            'D' => 'Satisfactory', 'F' => 'Fail'
+        ];
+        return $remarks[$grade] ?? 'N/A';
+    }
+}
+
+/**
+ * Get Tanzanian secondary education grade data for a given marks value.
+ *
+ * @param float $marks Marks obtained
+ * @return array ['grade', 'points', 'remarks']
+ */
+if (!function_exists('getGradeSecondary')) {
+    function getGradeSecondary(float $marks): array
+    {
+        if ($marks >= 75) return ['grade' => 'A', 'points' => 1, 'remarks' => 'Excellent'];
+        if ($marks >= 65) return ['grade' => 'B+', 'points' => 2, 'remarks' => 'Very Good'];
+        if ($marks >= 55) return ['grade' => 'B', 'points' => 3, 'remarks' => 'Good'];
+        if ($marks >= 45) return ['grade' => 'C', 'points' => 4, 'remarks' => 'Satisfactory'];
+        if ($marks >= 30) return ['grade' => 'D', 'points' => 5, 'remarks' => 'Pass'];
+        return ['grade' => 'F', 'points' => 7, 'remarks' => 'Fail'];
+    }
+}
