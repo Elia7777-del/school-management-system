@@ -64,3 +64,4 @@ All passwords are set to `password` in the seed data.
 | `teacher1` | Teacher | `password` |
 | `student1` | Student | `password` |
 | `parent1` | Parent | `password` |
+commit
