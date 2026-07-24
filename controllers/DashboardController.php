@@ -8,6 +8,7 @@ require_once APP_ROOT . '/models/Fee.php';
 require_once APP_ROOT . '/models/Exam.php';
 require_once APP_ROOT . '/models/ExamResult.php';
 require_once APP_ROOT . '/models/Timetable.php';
+require_once APP_ROOT . '/models/ParentComment.php';
 
 class DashboardController {
     private $db;
@@ -36,18 +37,30 @@ class DashboardController {
             $feeModel = new Fee();
             $examModel = new Exam();
 
-            $totalStudents = $studentModel->getTotalCount();
-            $totalTeachers = $teacherModel->getTotalCount();
-            $totalClasses = $classModel->getTotalCount();
-            $totalSubjects = $subjectModel->getTotalCount();
+            $scope = currentAdminScope(); // 'all', 'primary', or 'secondary'
 
-            $feesCollected = $feeModel->getTotalCollected($yearId);
-            $pendingFees = $feeModel->getTotalPending($yearId);
+            // Stats – filtered by scope for scoped admins
+            if ($scope === 'all') {
+                $totalStudents = $studentModel->getTotalCount();
+                $totalClasses  = $classModel->getTotalCount();
+            } else {
+                $totalStudents = $studentModel->getCountByLevel($scope);
+                // Count classes for this scope only
+                $stmt = $this->db->prepare("SELECT COUNT(*) as count FROM classes WHERE education_level = ?");
+                $stmt->execute([$scope]);
+                $totalClasses = $stmt->fetch()['count'];
+            }
+
+            $totalTeachers  = $teacherModel->getTotalCount();
+            $totalSubjects  = $subjectModel->getTotalCount();
+
+            $feesCollected    = $feeModel->getTotalCollected($yearId);
+            $pendingFees      = $feeModel->getTotalPending($yearId);
             $attendanceSummary = $attendanceModel->getTodaySummary();
-            $upcomingExams = $examModel->getUpcoming();
+            $upcomingExams    = $examModel->getUpcoming();
 
             // Stats for level charts
-            $primaryCount = $studentModel->getCountByLevel('primary');
+            $primaryCount   = $studentModel->getCountByLevel('primary');
             $secondaryCount = $studentModel->getCountByLevel('secondary');
 
             // Announcements
@@ -104,19 +117,55 @@ class DashboardController {
             $examResultModel = new ExamResult();
             $feeModel = new Fee();
 
+            // Fetch parent record
+            $stmt = $this->db->prepare("SELECT id FROM parents WHERE user_id = ? AND deleted_at IS NULL");
+            $stmt->execute([$user_id]);
+            $parentRecord = $stmt->fetch();
+            $parentId = $parentRecord['id'] ?? 0;
+
             // Fetch children linked to parent
-            $stmt = $this->db->prepare("SELECT s.*, c.class_name, c.section FROM students s JOIN student_parents sp ON s.id = sp.student_id JOIN parents p ON sp.parent_id = p.id WHERE p.user_id = ? AND s.deleted_at IS NULL");
+            $stmt = $this->db->prepare(
+                "SELECT s.*, c.class_name, c.section
+                 FROM students s
+                 JOIN student_parents sp ON s.id = sp.student_id
+                 JOIN parents p ON sp.parent_id = p.id
+                 LEFT JOIN classes c ON s.class_id = c.id
+                 WHERE p.user_id = ? AND s.deleted_at IS NULL"
+            );
             $stmt->execute([$user_id]);
             $children = $stmt->fetchAll();
 
             $childrenData = [];
+            $commentModel = new ParentComment();
             foreach ($children as $child) {
                 $childId = $child['id'];
+
+                $attendance = ['present' => 0, 'absent' => 0, 'late' => 0, 'total' => 0];
+                try {
+                    $attendance = $attendanceModel->getStudentAttendanceSummary($childId, $termId);
+                } catch (Exception $e) {}
+
+                $results = [];
+                try {
+                    $results = $examResultModel->getByStudentAll($childId);
+                } catch (Exception $e) {}
+
+                $balance = 0;
+                try {
+                    $balance = $feeModel->getStudentBalance($childId, $yearId);
+                } catch (Exception $e) {}
+
+                $comments = [];
+                try {
+                    $comments = $commentModel->getByParentAndStudent($parentId, $childId);
+                } catch (Exception $e) {}
+
                 $childrenData[] = [
                     'student' => $child,
-                    'attendance' => $attendanceModel->getStudentAttendanceSummary($childId, $termId),
-                    'results' => $examResultModel->getByStudentAll($childId),
-                    'balance' => $feeModel->getStudentBalance($childId, $yearId)
+                    'attendance' => $attendance,
+                    'results' => $results,
+                    'balance' => $balance,
+                    'comments' => $comments
                 ];
             }
 

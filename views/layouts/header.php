@@ -88,12 +88,35 @@
                             <i class="bi bi-award-fill me-3 text-warning"></i> My Results
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a href="<?php echo BASE_URL; ?>/my-fees" class="nav-link <?php echo isActiveMenu('my-fees'); ?>">
+                            <i class="bi bi-wallet2 me-3 text-success"></i> My Fees
+                        </a>
+                    </li>
+                <?php endif; ?>
+
+                <?php if (hasRole('parent')): ?>
+                    <li class="nav-item">
+                        <a href="<?php echo BASE_URL; ?>/dashboard" class="nav-link <?php echo isActiveMenu('dashboard'); ?>">
+                            <i class="bi bi-person-hearts me-3 text-cyan"></i> My Children
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="<?php echo BASE_URL; ?>/my-fees" class="nav-link <?php echo isActiveMenu('my-fees'); ?>">
+                            <i class="bi bi-wallet2 me-3 text-success"></i> Payments & Invoices
+                        </a>
+                    </li>
                 <?php endif; ?>
 
                 <?php if (isAdmin()): ?>
                     <li class="nav-item">
                         <a href="<?php echo BASE_URL; ?>/fees" class="nav-link <?php echo isActiveMenu('fees'); ?>">
                             <i class="bi bi-cash-coin me-3"></i> Fee Management
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="<?php echo BASE_URL; ?>/invoices" class="nav-link <?php echo isActiveMenu('invoices'); ?>">
+                            <i class="bi bi-receipt me-3"></i> Invoices
                         </a>
                     </li>
                 <?php endif; ?>

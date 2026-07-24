@@ -117,11 +117,40 @@ function isAdmin(): bool
 function setUserSession(array $user): void
 {
     session_regenerate_id(true); // Prevent session fixation
-    $_SESSION['user_id']  = $user['id'];
-    $_SESSION['username'] = $user['username'];
-    $_SESSION['email']    = $user['email'];
-    $_SESSION['role']     = $user['role_name'];
-    $_SESSION['role_id']  = $user['role_id'];
+    $_SESSION['user_id']    = $user['id'];
+    $_SESSION['username']   = $user['username'];
+    $_SESSION['email']      = $user['email'];
+    $_SESSION['role']       = $user['role_name'];
+    $_SESSION['role_id']    = $user['role_id'];
+    $_SESSION['admin_scope'] = $user['admin_scope'] ?? 'all'; // 'all', 'primary', or 'secondary'
+}
+
+/**
+ * Get the current admin's scope (all, primary, secondary).
+ *
+ * @return string
+ */
+function currentAdminScope(): string
+{
+    return $_SESSION['admin_scope'] ?? 'all';
+}
+
+/**
+ * Block access to a page if the admin's scope does not include the given level.
+ * Redirects to dashboard with error if unauthorized.
+ *
+ * @param string $requiredLevel  'primary' or 'secondary'
+ */
+function requireScopeAccess(string $requiredLevel): void
+{
+    $scope = currentAdminScope();
+    // super_admin (scope=all) can access everything
+    if ($scope === 'all') return;
+    if ($scope !== $requiredLevel) {
+        setFlash('error', 'Huna ruhusa ya kufikia sehemu hiyo.');
+        redirect('dashboard');
+        exit;
+    }
 }
 
 /**

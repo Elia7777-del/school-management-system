@@ -82,6 +82,14 @@ $routes = [
     'fees/record'               => ['FeeController', 'recordPayment'],
     'fees/store'                => ['FeeController', 'storePayment'],
     'fees/report'               => ['FeeController', 'report'],
+    'my-fees'                   => ['InvoiceController', 'myFees'],
+
+    // ─── Invoices & Payments ────────────────────────────────────
+    'invoices'                  => ['InvoiceController', 'index'],
+    'invoices/create'           => ['InvoiceController', 'create'],
+    'invoices/store'            => ['InvoiceController', 'store'],
+    'api/azampay/checkout'      => ['PaymentController', 'checkout'],
+    'api/azampay/webhook'       => ['PaymentController', 'webhook'],
 
     // ─── Timetable Module ───────────────────────────────────────
     'timetable'                 => ['TimetableController', 'index'],
@@ -120,4 +128,9 @@ $routes = [
 
     // ─── Audit Logs ─────────────────────────────────────────────
     'audit'                     => ['AuditController', 'index'],
+
+    // ─── Parent Portal ──────────────────────────────────────────
+    'parent/dashboard'          => ['ParentController', 'dashboard'],
+    'parent/store-comment'      => ['ParentController', 'storeComment'],
+    'parent/delete-comment'     => ['ParentController', 'deleteComment'],
 ];

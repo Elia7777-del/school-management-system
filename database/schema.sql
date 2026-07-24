@@ -426,8 +426,72 @@ CREATE TABLE `teacher_activity_logs` (
     CONSTRAINT `fk_tal_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- ============================================================================
+-- 22. INVOICES
+-- ============================================================================
+DROP TABLE IF EXISTS `invoices`;
+CREATE TABLE `invoices` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `student_id`       INT NOT NULL,
+    `academic_year_id` INT NOT NULL,
+    `term_id`          INT DEFAULT NULL,
+    `invoice_number`   VARCHAR(50) NOT NULL UNIQUE,
+    `amount`           DECIMAL(12,2) NOT NULL,
+    `amount_paid`      DECIMAL(12,2) NOT NULL DEFAULT 0,
+    `status`           ENUM('pending', 'partial', 'paid') NOT NULL DEFAULT 'pending',
+    `due_date`         DATE DEFAULT NULL,
+    `description`      VARCHAR(255) DEFAULT NULL,
+    `created_by`       INT NOT NULL,
+    `created_at`       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at`       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    CONSTRAINT `fk_inv_student` FOREIGN KEY (`student_id`) REFERENCES `students` (`id`),
+    CONSTRAINT `fk_inv_year`    FOREIGN KEY (`academic_year_id`) REFERENCES `academic_years` (`id`),
+    CONSTRAINT `fk_inv_user`    FOREIGN KEY (`created_by`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================================
+-- 23. PAYMENT TRANSACTIONS
+-- ============================================================================
+DROP TABLE IF EXISTS `payment_transactions`;
+CREATE TABLE `payment_transactions` (
+    `id`                     INT NOT NULL AUTO_INCREMENT,
+    `invoice_id`             INT DEFAULT NULL,
+    `student_id`             INT NOT NULL,
+    `reference`              VARCHAR(100) NOT NULL UNIQUE,
+    `azampay_transaction_id` VARCHAR(100) DEFAULT NULL,
+    `amount`                 DECIMAL(12,2) NOT NULL,
+    `provider`               VARCHAR(50) NOT NULL,
+    `account_number`         VARCHAR(50) NOT NULL,
+    `status`                 ENUM('initiated', 'pending', 'success', 'failed') NOT NULL DEFAULT 'initiated',
+    `response_message`       TEXT DEFAULT NULL,
+    `created_at`             TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at`             TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    CONSTRAINT `fk_pt_invoice` FOREIGN KEY (`invoice_id`) REFERENCES `invoices` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_pt_student` FOREIGN KEY (`student_id`) REFERENCES `students` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Re-enable FK checks
 SET FOREIGN_KEY_CHECKS = 1;
+
+-- ============================================================================
+-- PARENT COMMENTS  (parent feedback / notes about their children)
+-- ============================================================================
+DROP TABLE IF EXISTS `parent_comments`;
+CREATE TABLE `parent_comments` (
+    `id`         INT       NOT NULL AUTO_INCREMENT,
+    `student_id` INT       NOT NULL,
+    `parent_id`  INT       NOT NULL,
+    `comment`    TEXT      NOT NULL,
+    `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    INDEX `idx_pc_student` (`student_id`),
+    INDEX `idx_pc_parent`  (`parent_id`),
+    CONSTRAINT `fk_pc_student` FOREIGN KEY (`student_id`) REFERENCES `students` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_pc_parent`  FOREIGN KEY (`parent_id`)  REFERENCES `parents`  (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================================
 -- END OF SCHEMA

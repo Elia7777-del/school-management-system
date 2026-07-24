@@ -7,7 +7,13 @@ class SchoolClass {
     }
 
     public function getAll() {
-        $stmt = $this->db->query("SELECT * FROM classes ORDER BY CASE education_level WHEN 'primary' THEN 1 ELSE 2 END, class_name, section");
+        $scope = $_SESSION['admin_scope'] ?? 'all';
+        if ($scope === 'all') {
+            $stmt = $this->db->query("SELECT * FROM classes ORDER BY CASE education_level WHEN 'primary' THEN 1 ELSE 2 END, class_name, section");
+        } else {
+            $stmt = $this->db->prepare("SELECT * FROM classes WHERE education_level = ? ORDER BY class_name, section");
+            $stmt->execute([$scope]);
+        }
         return $stmt->fetchAll();
     }
 

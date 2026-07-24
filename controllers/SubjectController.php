@@ -34,12 +34,18 @@ class SubjectController {
             }
 
             $data = [
-                'subject_name' => sanitize($_POST['subject_name'] ?? ''),
-                'subject_code' => sanitize($_POST['subject_code'] ?? ''),
+                'subject_name'    => sanitize($_POST['subject_name'] ?? ''),
+                'subject_code'    => sanitize($_POST['subject_code'] ?? ''),
                 'education_level' => sanitize($_POST['education_level'] ?? ''),
-                'description' => sanitize($_POST['description'] ?? ''),
-                'status' => sanitize($_POST['status'] ?? 'active')
+                'description'     => sanitize($_POST['description'] ?? ''),
+                'status'          => sanitize($_POST['status'] ?? 'active')
             ];
+
+            // Enforce scope: scoped admin cannot create subjects for the other level
+            $scope = $_SESSION['admin_scope'] ?? 'all';
+            if ($scope !== 'all') {
+                $data['education_level'] = $scope;
+            }
 
             if (empty($data['subject_name']) || empty($data['subject_code']) || empty($data['education_level'])) {
                 setFlash('error', 'Please fill in all required fields.');

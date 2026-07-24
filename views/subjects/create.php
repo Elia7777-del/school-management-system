@@ -18,10 +18,21 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label text-muted">Education Level</label>
-                        <select class="form-select" name="education_level" required>
-                            <option value="primary">Primary (Std I-VII)</option>
-                            <option value="secondary">Secondary (Form I-IV)</option>
-                        </select>
+                        <?php
+                            $scope = $_SESSION['admin_scope'] ?? 'all';
+                            if ($scope === 'primary'):
+                        ?>
+                            <input type="hidden" name="education_level" value="primary">
+                            <input type="text" class="form-control" value="Primary (Std I-VII)" disabled>
+                        <?php elseif ($scope === 'secondary'): ?>
+                            <input type="hidden" name="education_level" value="secondary">
+                            <input type="text" class="form-control" value="Secondary (Form I-IV)" disabled>
+                        <?php else: ?>
+                            <select class="form-select" name="education_level" required>
+                                <option value="primary">Primary (Std I-VII)</option>
+                                <option value="secondary">Secondary (Form I-IV)</option>
+                            </select>
+                        <?php endif; ?>
                     </div>
                     <button type="submit" class="btn btn-cyan text-dark fw-semibold mt-3"><i class="bi bi-save me-2"></i>Save Subject</button>
                 </form>

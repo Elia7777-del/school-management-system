@@ -71,6 +71,41 @@
                     </div>
 
                     <div class="mb-3">
+                        <label class="form-label text-muted">Assign Parent / Guardian</label>
+                        <select class="form-select" name="parent_id">
+                            <option value="">-- Select Parent (Optional) --</option>
+                            <?php foreach ($parents as $p): ?>
+                                <option value="<?php echo $p['id']; ?>">
+                                    <?php echo htmlspecialchars($p['first_name'] . ' ' . $p['last_name']) . ' (' . ucfirst($p['relationship']) . ' - ' . $p['phone'] . ')'; ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div class="card bg-dark border-secondary p-3 mb-3">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" name="create_account" id="create_account" value="1" checked onclick="document.getElementById('account_fields').classList.toggle('d-none', !this.checked)">
+                            <label class="form-check-label text-white fw-semibold" for="create_account">
+                                Create User Login Account for Student
+                            </label>
+                        </div>
+                        <div id="account_fields" class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label text-muted">Username</label>
+                                <input type="text" class="form-control" name="username" placeholder="e.g. std2026_01">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label text-muted">Email</label>
+                                <input type="email" class="form-control" name="email" placeholder="student@school.com">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label text-muted">Password</label>
+                                <input type="password" class="form-control" name="password" value="Student@123">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
                         <label class="form-label text-muted">Address</label>
                         <textarea class="form-control" name="address" rows="2"></textarea>
                     </div>

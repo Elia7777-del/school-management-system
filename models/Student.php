@@ -11,6 +11,14 @@ class Student {
         $sql = "SELECT s.*, c.class_name, c.section FROM students s LEFT JOIN classes c ON s.class_id = c.id WHERE s.deleted_at IS NULL";
         $params = [];
 
+        // Enforce admin scope: scoped admins can only see their level
+        $scope = $_SESSION['admin_scope'] ?? 'all';
+        if ($scope !== 'all') {
+            $sql .= " AND s.education_level = ?";
+            $params[] = $scope;
+            $educationLevel = ''; // prevent double-filter
+        }
+
         if (!empty($search)) {
             $sql .= " AND (s.first_name LIKE ? OR s.last_name LIKE ? OR s.admission_number LIKE ?)";
             $params[] = "%$search%";
@@ -39,6 +47,14 @@ class Student {
     public function getCount($search = '', $classId = '', $educationLevel = '', $status = '') {
         $sql = "SELECT COUNT(*) as count FROM students s WHERE s.deleted_at IS NULL";
         $params = [];
+
+        // Enforce admin scope
+        $scope = $_SESSION['admin_scope'] ?? 'all';
+        if ($scope !== 'all') {
+            $sql .= " AND s.education_level = ?";
+            $params[] = $scope;
+            $educationLevel = '';
+        }
 
         if (!empty($search)) {
             $sql .= " AND (s.first_name LIKE ? OR s.last_name LIKE ? OR s.admission_number LIKE ?)";
@@ -96,7 +112,7 @@ class Student {
     }
 
     public function update($id, $data) {
-        $stmt = $this->db->prepare("UPDATE students SET admission_number = ?, first_name = ?, middle_name = ?, last_name = ?, gender = ?, date_of_birth = ?, class_id = ?, education_level = ?, phone = ?, address = ?, status = ? WHERE id = ?");
+        $stmt = $this->db->prepare("UPDATE students SET admission_number = ?, first_name = ?, middle_name = ?, last_name = ?, gender = ?, date_of_birth = ?, class_id = ?, education_level = ?, phone = ?, address = ?, status = ?, user_id = ? WHERE id = ?");
         return $stmt->execute([
             $data['admission_number'],
             $data['first_name'],
@@ -109,6 +125,7 @@ class Student {
             $data['phone'] ?? null,
             $data['address'] ?? null,
             $data['status'],
+            $data['user_id'] ?? null,
             $id
         ]);
     }

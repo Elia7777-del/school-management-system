@@ -7,6 +7,12 @@ class Subject {
     }
 
     public function getAll($educationLevel = '') {
+        // Enforce admin scope – overrides any passed $educationLevel for scoped admins
+        $scope = $_SESSION['admin_scope'] ?? 'all';
+        if ($scope !== 'all') {
+            $educationLevel = $scope;
+        }
+
         if (!empty($educationLevel)) {
             $stmt = $this->db->prepare("SELECT * FROM subjects WHERE education_level = ? AND status = 'active' ORDER BY subject_name");
             $stmt->execute([$educationLevel]);

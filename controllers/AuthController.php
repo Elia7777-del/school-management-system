@@ -33,18 +33,36 @@ class AuthController {
             // First, try finding the user by regular username
             $user = $this->userModel->findByUsername($username);
 
-            // If not found, check if the input is an admission number
+            // If not found, check if the input is an admission number (student login)
             if (!$user) {
-                $studentModel = new Student();
-                // We need to find by admission number, so let's add that method if not exists, or just query here.
-                // Wait, it's safer to just query here since we don't know if findByAdmissionNumber exists.
                 $db = Database::getInstance()->getConnection();
                 $stmt = $db->prepare("SELECT user_id FROM students WHERE admission_number = ? AND deleted_at IS NULL");
                 $stmt->execute([$username]);
                 $studentRecord = $stmt->fetch();
-                
+
                 if ($studentRecord && $studentRecord['user_id']) {
                     $user = $this->userModel->findById($studentRecord['user_id']);
+                }
+            }
+
+            // If still not found, check if a PARENT is trying to log in using their child's admission number
+            // In this case the password must match the parent's account password
+            if (!$user) {
+                $db = Database::getInstance()->getConnection();
+                $stmt = $db->prepare(
+                    "SELECT u.* , r.role_name
+                     FROM students s
+                     JOIN student_parents sp ON s.id = sp.student_id
+                     JOIN parents p ON sp.parent_id = p.id
+                     JOIN users u ON p.user_id = u.id
+                     JOIN roles r ON u.role_id = r.id
+                     WHERE s.admission_number = ? AND s.deleted_at IS NULL AND u.status = 'active'
+                     LIMIT 1"
+                );
+                $stmt->execute([$username]);
+                $parentUser = $stmt->fetch();
+                if ($parentUser) {
+                    $user = $parentUser;
                 }
             }
 

@@ -19,7 +19,7 @@ class ExamResult {
     }
 
     public function getByStudentAll($studentId) {
-        $stmt = $this->db->prepare("SELECT er.*, e.exam_name, e.exam_type, sub.subject_name, sub.subject_code, ay.year_name, st.term_name FROM exam_results er JOIN exams e ON er.exam_id = e.id JOIN subjects sub ON er.subject_id = sub.id JOIN academic_years ay ON e.academic_year_id = ay.id JOIN school_terms st ON e.term_id = st.id WHERE er.student_id = ? ORDER BY ay.year_name DESC, st.term_name DESC, e.exam_name, sub.subject_name");
+        $stmt = $this->db->prepare("SELECT er.*, e.exam_name, e.exam_type, sub.subject_name, sub.subject_code, ay.year_name, st.term_name FROM exam_results er JOIN subjects sub ON er.subject_id = sub.id LEFT JOIN exams e ON er.exam_id = e.id LEFT JOIN academic_years ay ON e.academic_year_id = ay.id LEFT JOIN school_terms st ON e.term_id = st.id WHERE er.student_id = ? ORDER BY er.created_at DESC");
         $stmt->execute([$studentId]);
         return $stmt->fetchAll();
     }

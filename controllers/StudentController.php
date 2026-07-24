@@ -38,6 +38,18 @@ class StudentController {
     public function create() {
         $classes = $this->classModel->getAll();
         $db = Database::getInstance()->getConnection();
+        
+        // Fetch parents list for dropdown
+        $stmt = $db->query("
+            SELECT p.id, p.first_name, p.last_name, p.relationship, p.phone,
+                   u.username
+            FROM parents p
+            JOIN users u ON p.user_id = u.id
+            WHERE p.deleted_at IS NULL AND u.deleted_at IS NULL
+            ORDER BY p.first_name, p.last_name
+        ");
+        $parents = $stmt->fetchAll();
+
         $suggestedAdmNumber = generateAdmissionNumber($db);
         $pageTitle = 'Add Student';
         require_once APP_ROOT . '/views/layouts/header.php';
@@ -126,6 +138,27 @@ class StudentController {
             redirect('students');
         }
         $classes = $this->classModel->getAll();
+        
+        $db = Database::getInstance()->getConnection();
+        // Fetch student role users for linking
+        $stmt = $db->query("SELECT u.id, u.username, u.email FROM users u JOIN roles r ON u.role_id = r.id WHERE r.role_name = 'student' AND u.status = 'active' AND u.deleted_at IS NULL ORDER BY u.username");
+        $studentUsers = $stmt->fetchAll();
+
+        // Fetch parents list — only from the parents table (these have proper parent IDs for linking)
+        $stmt = $db->query("
+            SELECT p.id, p.first_name, p.last_name, p.relationship, p.phone,
+                   u.username
+            FROM parents p
+            JOIN users u ON p.user_id = u.id
+            WHERE p.deleted_at IS NULL AND u.deleted_at IS NULL
+            ORDER BY p.first_name, p.last_name
+        ");
+        $parents = $stmt->fetchAll();
+
+        // Get currently linked parent ID
+        $linkedParents = $this->studentModel->getParents($id);
+        $currentParentId = !empty($linkedParents) ? $linkedParents[0]['id'] : null;
+
         $pageTitle = 'Edit Student';
         require_once APP_ROOT . '/views/layouts/header.php';
         require_once APP_ROOT . '/views/students/edit.php';
@@ -151,10 +184,53 @@ class StudentController {
                 'education_level' => sanitize($_POST['education_level'] ?? ''),
                 'phone' => sanitize($_POST['phone'] ?? ''),
                 'address' => sanitize($_POST['address'] ?? ''),
-                'status' => sanitize($_POST['status'] ?? 'active')
+                'status' => sanitize($_POST['status'] ?? 'active'),
+                'user_id' => !empty($_POST['user_id']) ? (int)$_POST['user_id'] : null
             ];
 
             $this->studentModel->update($id, $data);
+
+            // Update linked parent if selected
+            if (isset($_POST['parent_id'])) {
+                $parentId = (int)$_POST['parent_id'];
+                $db = Database::getInstance()->getConnection();
+                
+                // Remove existing link
+                $stmt = $db->prepare("DELETE FROM student_parents WHERE student_id = ?");
+                $stmt->execute([$id]);
+                
+                if ($parentId > 0) {
+                    // Check if parentId exists in parents table
+                    $stmt = $db->prepare("SELECT id FROM parents WHERE id = ?");
+                    $stmt->execute([$parentId]);
+                    $existingParent = $stmt->fetch();
+
+                    if (!$existingParent) {
+                        // It might be a user_id of a Parent role user, let's check users table
+                        $stmt = $db->prepare("SELECT u.* FROM users u JOIN roles r ON u.role_id = r.id WHERE u.id = ? AND r.role_name = 'parent'");
+                        $stmt->execute([$parentId]);
+                        $parentUser = $stmt->fetch();
+
+                        if ($parentUser) {
+                            // Auto create parent profile
+                            $stmt = $db->prepare("INSERT INTO parents (user_id, first_name, last_name, email, relationship) VALUES (?, ?, ?, ?, ?)");
+                            $stmt->execute([
+                                $parentUser['id'],
+                                $parentUser['username'],
+                                'Parent',
+                                $parentUser['email'],
+                                'guardian'
+                            ]);
+                            $parentId = $db->lastInsertId();
+                        }
+                    }
+
+                    if ($parentId > 0) {
+                        $this->studentModel->linkParent($id, $parentId);
+                    }
+                }
+            }
+
             setFlash('success', 'Student updated successfully.');
             redirect('students');
         }

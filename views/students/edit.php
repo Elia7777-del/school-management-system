@@ -67,12 +67,35 @@
                         </div>
                     </div>
 
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Link Parent / Guardian</label>
+                        <select class="form-select" name="parent_id">
+                            <option value="">-- No Parent Linked --</option>
+                            <?php foreach ($parents as $p): ?>
+                                <option value="<?php echo $p['id']; ?>" <?php echo (isset($currentParentId) && $currentParentId == $p['id']) ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($p['first_name'] . ' ' . $p['last_name']) . ' (' . ucfirst($p['relationship']) . ' - ' . $p['phone'] . ')'; ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
                             <label class="form-label text-muted">Status</label>
                             <select class="form-select" name="status" required>
                                 <option value="active" <?php echo $student['status'] === 'active' ? 'selected' : ''; ?>>Active</option>
                                 <option value="inactive" <?php echo $student['status'] === 'inactive' ? 'selected' : ''; ?>>Inactive</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted">Link User Account</label>
+                            <select class="form-select" name="user_id">
+                                <option value="">-- No Linked Account --</option>
+                                <?php foreach ($studentUsers as $u): ?>
+                                    <option value="<?php echo $u['id']; ?>" <?php echo $student['user_id'] == $u['id'] ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($u['username']) . ' (' . htmlspecialchars($u['email']) . ')'; ?>
+                                    </option>
+                                <?php endforeach; ?>
                             </select>
                         </div>
                     </div>
