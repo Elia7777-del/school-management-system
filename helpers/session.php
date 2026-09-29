@@ -7,12 +7,18 @@
  * @package SchoolManagementSystem
  */
 
+require_once APP_ROOT . '/config/database.php';
+require_once APP_ROOT . '/helpers/DatabaseSessionHandler.php';
+
 /**
  * Start a session if not already started.
  */
 function startSession(): void
 {
     if (session_status() === PHP_SESSION_NONE) {
+        $db = Database::getInstance()->getConnection();
+        $handler = new DatabaseSessionHandler($db);
+        session_set_save_handler($handler, true);
         session_start();
     }
 }

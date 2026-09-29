@@ -7,18 +7,23 @@ class Subject {
     }
 
     public function getAll($educationLevel = '') {
-        // Enforce admin scope – overrides any passed $educationLevel for scoped admins
+        $schoolId = currentSchoolId();
         $scope = $_SESSION['admin_scope'] ?? 'all';
-        if ($scope !== 'all') {
-            $educationLevel = $scope;
-        }
+        if ($scope !== 'all') { $educationLevel = $scope; }
 
-        if (!empty($educationLevel)) {
-            $stmt = $this->db->prepare("SELECT * FROM subjects WHERE education_level = ? AND status = 'active' ORDER BY subject_name");
-            $stmt->execute([$educationLevel]);
-        } else {
-            $stmt = $this->db->query("SELECT * FROM subjects ORDER BY education_level, subject_name");
+        $sql = "SELECT * FROM subjects WHERE 1=1";
+        $params = [];
+        if ($schoolId) {
+            $sql .= " AND school_id = ?";
+            $params[] = $schoolId;
         }
+        if (!empty($educationLevel)) {
+            $sql .= " AND education_level = ? AND status = 'active'";
+            $params[] = $educationLevel;
+        }
+        $sql .= " ORDER BY education_level, subject_name";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
         return $stmt->fetchAll();
     }
 
@@ -29,13 +34,15 @@ class Subject {
     }
 
     public function create($data) {
-        $stmt = $this->db->prepare("INSERT INTO subjects (subject_name, subject_code, education_level, description, status) VALUES (?, ?, ?, ?, ?)");
+        $schoolId = currentSchoolId() ?? 1;
+        $stmt = $this->db->prepare("INSERT INTO subjects (subject_name, subject_code, education_level, description, status, school_id) VALUES (?, ?, ?, ?, ?, ?)");
         return $stmt->execute([
             $data['subject_name'],
             $data['subject_code'],
             $data['education_level'],
             $data['description'] ?? null,
-            $data['status'] ?? 'active'
+            $data['status'] ?? 'active',
+            $schoolId
         ]);
     }
 

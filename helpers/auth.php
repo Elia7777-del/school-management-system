@@ -110,19 +110,52 @@ function isAdmin(): bool
 }
 
 /**
+ * Check if current user is the platform-level System Admin.
+ *
+ * @return bool
+ */
+function isSysAdmin(): bool
+{
+    return currentUserRole() === 'system_admin';
+}
+
+/**
+ * Get the current logged-in user's school_id.
+ *
+ * @return int|null  NULL means system admin (no school)
+ */
+function currentSchoolId(): ?int
+{
+    return isset($_SESSION['school_id']) ? (int)$_SESSION['school_id'] : null;
+}
+
+/**
+ * Get the current school's name from session.
+ *
+ * @return string
+ */
+function currentSchoolName(): string
+{
+    return $_SESSION['school_name'] ?? 'School';
+}
+
+/**
  * Set user session data on login.
  *
  * @param array $user User record from database
  */
-function setUserSession(array $user): void
+function setUserSession(array $user, ?array $school = null): void
 {
     session_regenerate_id(true); // Prevent session fixation
-    $_SESSION['user_id']    = $user['id'];
-    $_SESSION['username']   = $user['username'];
-    $_SESSION['email']      = $user['email'];
-    $_SESSION['role']       = $user['role_name'];
-    $_SESSION['role_id']    = $user['role_id'];
-    $_SESSION['admin_scope'] = $user['admin_scope'] ?? 'all'; // 'all', 'primary', or 'secondary'
+    $_SESSION['user_id']     = $user['id'];
+    $_SESSION['username']    = $user['username'];
+    $_SESSION['email']       = $user['email'];
+    $_SESSION['role']        = $user['role_name'];
+    $_SESSION['role_id']     = $user['role_id'];
+    $_SESSION['admin_scope'] = $user['admin_scope'] ?? 'all';
+    // Multi-tenant: store school context
+    $_SESSION['school_id']   = $user['school_id'] ?? null;
+    $_SESSION['school_name'] = $school['name'] ?? 'School';
 }
 
 /**

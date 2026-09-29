@@ -7,13 +7,21 @@ class SchoolClass {
     }
 
     public function getAll() {
+        $schoolId = currentSchoolId();
         $scope = $_SESSION['admin_scope'] ?? 'all';
-        if ($scope === 'all') {
-            $stmt = $this->db->query("SELECT * FROM classes ORDER BY CASE education_level WHEN 'primary' THEN 1 ELSE 2 END, class_name, section");
-        } else {
-            $stmt = $this->db->prepare("SELECT * FROM classes WHERE education_level = ? ORDER BY class_name, section");
-            $stmt->execute([$scope]);
+        $params = [];
+        $sql = "SELECT * FROM classes WHERE 1=1";
+        if ($schoolId) {
+            $sql .= " AND school_id = ?";
+            $params[] = $schoolId;
         }
+        if ($scope !== 'all') {
+            $sql .= " AND education_level = ?";
+            $params[] = $scope;
+        }
+        $sql .= " ORDER BY CASE education_level WHEN 'primary' THEN 1 ELSE 2 END, class_name, section";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
         return $stmt->fetchAll();
     }
 
@@ -24,18 +32,28 @@ class SchoolClass {
     }
 
     public function getByLevel($level) {
-        $stmt = $this->db->prepare("SELECT * FROM classes WHERE education_level = ? ORDER BY class_name, section");
-        $stmt->execute([$level]);
+        $schoolId = currentSchoolId();
+        $sql = "SELECT * FROM classes WHERE education_level = ?";
+        $params = [$level];
+        if ($schoolId) {
+            $sql .= " AND school_id = ?";
+            $params[] = $schoolId;
+        }
+        $sql .= " ORDER BY class_name, section";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
         return $stmt->fetchAll();
     }
 
     public function create($data) {
-        $stmt = $this->db->prepare("INSERT INTO classes (class_name, education_level, section, capacity) VALUES (?, ?, ?, ?)");
+        $schoolId = currentSchoolId() ?? 1;
+        $stmt = $this->db->prepare("INSERT INTO classes (class_name, education_level, section, capacity, school_id) VALUES (?, ?, ?, ?, ?)");
         $stmt->execute([
             $data['class_name'],
             $data['education_level'],
             $data['section'] ?? null,
-            $data['capacity'] ?? 40
+            $data['capacity'] ?? 40,
+            $schoolId
         ]);
         return $this->db->lastInsertId();
     }

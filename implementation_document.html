@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Management System — Implementation Document</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            font-size: 13px;
+            color: #1a1a2e;
+            background: #fff;
+            line-height: 1.6;
+        }
+
+        /* ─── Cover Page ─────────────────────────────── */
+        .cover {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #0f3460 0%, #16213e 60%, #0a0a23 100%);
+            color: #fff;
+            text-align: center;
+            page-break-after: always;
+            padding: 40px;
+        }
+        .cover .logo {
+            font-size: 70px;
+            margin-bottom: 24px;
+        }
+        .cover h1 {
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            color: #00d4ff;
+        }
+        .cover .subtitle {
+            font-size: 16px;
+            color: #a0c4e8;
+            margin-bottom: 40px;
+            font-weight: 400;
+        }
+        .cover .meta-box {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(0,212,255,0.3);
+            border-radius: 12px;
+            padding: 28px 48px;
+            margin-top: 20px;
+        }
+        .cover .meta-row {
+            display: flex;
+            gap: 32px;
+            margin-bottom: 10px;
+        }
+        .cover .meta-item { text-align: left; }
+        .cover .meta-label { font-size: 10px; color: #7ecfed; text-transform: uppercase; letter-spacing: 1px; }
+        .cover .meta-value { font-size: 14px; color: #fff; font-weight: 600; }
+        .cover .badge-row {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        .cover .badge {
+            background: rgba(0,212,255,0.15);
+            border: 1px solid #00d4ff;
+            color: #00d4ff;
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        /* ─── TOC ─────────────────────────────────────── */
+        .toc-page {
+            padding: 60px 80px;
+            page-break-after: always;
+            min-height: 100vh;
+        }
+        .toc-page h2 { font-size: 22px; color: #0f3460; margin-bottom: 28px; border-bottom: 3px solid #00d4ff; padding-bottom: 10px; }
+        .toc-list { list-style: none; }
+        .toc-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px dotted #ddd;
+            font-size: 13px;
+        }
+        .toc-list li a { color: #0f3460; text-decoration: none; font-weight: 500; }
+        .toc-list li .pg { color: #666; font-size: 12px; }
+        .toc-list .section { font-weight: 700; color: #0f3460; background: #f0f7ff; padding: 4px 8px; margin-top: 4px; }
+
+        /* ─── Content Pages ───────────────────────────── */
+        .content {
+            padding: 50px 80px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .section-break { page-break-before: always; }
+
+        h1.section-title {
+            font-size: 22px;
+            color: #0f3460;
+            border-left: 5px solid #00d4ff;
+            padding-left: 14px;
+            margin-bottom: 20px;
+            margin-top: 30px;
+        }
+        h2.sub-title {
+            font-size: 16px;
+            color: #16213e;
+            margin: 22px 0 10px 0;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        h3.sub-sub-title {
+            font-size: 14px;
+            color: #0f3460;
+            margin: 16px 0 8px 0;
+        }
+        p { margin-bottom: 10px; color: #333; }
+
+        /* ─── Tables ──────────────────────────────────── */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 14px 0 20px 0;
+            font-size: 12px;
+        }
+        th {
+            background: #0f3460;
+            color: #fff;
+            padding: 9px 12px;
+            text-align: left;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+        td { padding: 8px 12px; border-bottom: 1px solid #e8e8e8; vertical-align: top; }
+        tr:nth-child(even) td { background: #f8fbff; }
+        tr:hover td { background: #e8f4fd; }
+
+        /* ─── Code Blocks ─────────────────────────────── */
+        pre {
+            background: #1a1a2e;
+            color: #e2e8f0;
+            padding: 16px 20px;
+            border-radius: 8px;
+            font-size: 11.5px;
+            line-height: 1.7;
+            overflow-x: auto;
+            margin: 12px 0 18px 0;
+            border-left: 4px solid #00d4ff;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* ─── Info Boxes ──────────────────────────────── */
+        .info-box {
+            background: #e8f7ff;
+            border-left: 4px solid #0ea5e9;
+            padding: 12px 16px;
+            margin: 12px 0;
+            border-radius: 0 8px 8px 0;
+            font-size: 12.5px;
+        }
+        .warn-box {
+            background: #fff8e1;
+            border-left: 4px solid #f59e0b;
+            padding: 12px 16px;
+            margin: 12px 0;
+            border-radius: 0 8px 8px 0;
+            font-size: 12.5px;
+        }
+        .success-box {
+            background: #f0fdf4;
+            border-left: 4px solid #22c55e;
+            padding: 12px 16px;
+            margin: 12px 0;
+            border-radius: 0 8px 8px 0;
+            font-size: 12.5px;
+        }
+
+        /* ─── Stat Cards ──────────────────────────────── */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin: 16px 0;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #0f3460, #16213e);
+            color: #fff;
+            padding: 16px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .stat-card .num { font-size: 28px; font-weight: 800; color: #00d4ff; }
+        .stat-card .lbl { font-size: 11px; color: #a0c4e8; margin-top: 2px; }
+
+        /* ─── Module Cards ────────────────────────────── */
+        .module-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin: 14px 0;
+        }
+        .module-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 14px;
+            background: #fafbff;
+        }
+        .module-card .icon { font-size: 22px; margin-bottom: 6px; }
+        .module-card .name { font-weight: 700; color: #0f3460; font-size: 13px; }
+        .module-card .desc { font-size: 11px; color: #666; margin-top: 3px; }
+
+        /* ─── Architecture Diagram ────────────────────── */
+        .arch-diagram {
+            background: #0f3460;
+            color: #e2e8f0;
+            padding: 24px;
+            border-radius: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 11.5px;
+            line-height: 1.8;
+            margin: 16px 0;
+            text-align: center;
+        }
+        .arch-diagram .cyan { color: #00d4ff; }
+        .arch-diagram .green { color: #22c55e; }
+        .arch-diagram .yellow { color: #fbbf24; }
+
+        /* ─── Print ───────────────────────────────────── */
+        @media print {
+            body { font-size: 12px; }
+            .cover { height: 100vh; }
+            .section-break { page-break-before: always; }
+            pre { font-size: 10px; }
+            .stat-grid { grid-template-columns: repeat(4, 1fr); }
+            .module-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        /* ─── Footer ──────────────────────────────────── */
+        .doc-footer {
+            background: #0f3460;
+            color: #a0c4e8;
+            padding: 20px 80px;
+            text-align: center;
+            font-size: 11px;
+            margin-top: 60px;
+        }
+
+        /* ─── Print Button ────────────────────────────── */
+        .print-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #00d4ff;
+            color: #0f3460;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(0,212,255,0.4);
+            z-index: 9999;
+        }
+        .print-btn:hover { background: #0ea5e9; }
+        @media print { .print-btn { display: none; } }
+
+        /* ════════════════════════════════════════
+           MOBILE-FIRST RESPONSIVE OVERRIDES
+           ════════════════════════════════════════ */
+
+        /* -- Tables: scrollable on small screens -- */
+        table { overflow-x: auto; display: block; -webkit-overflow-scrolling: touch; }
+        thead, tbody, tfoot { display: table; width: 100%; }
+
+        /* -- Code blocks: horizontal scroll -- */
+        pre { overflow-x: auto; -webkit-overflow-scrolling: touch; white-space: pre; }
+
+        /* -- Arch diagram: horizontal scroll -- */
+        .arch-diagram { overflow-x: auto; -webkit-overflow-scrolling: touch; text-align: left; }
+
+        /* ── Phone (max 599px) ── */
+        @media (max-width: 599px) {
+            /* Cover page */
+            .cover { min-height: 100vh; height: auto; padding: 30px 16px; }
+            .cover .logo { font-size: 48px; margin-bottom: 12px; }
+            .cover h1 { font-size: 20px; }
+            .cover .subtitle { font-size: 12px; margin-bottom: 14px; }
+            .cover .meta-box { padding: 14px 12px; }
+            .cover .meta-row { gap: 12px; }
+            .cover .meta-value { font-size: 12px; }
+            .cover .badge { font-size: 9px; padding: 3px 8px; }
+
+            /* TOC */
+            .toc-page { padding: 24px 14px; min-height: auto; }
+            .toc-page h2 { font-size: 16px; }
+            .toc-list li { font-size: 12px; }
+
+            /* Content */
+            .content { padding: 20px 14px; }
+            h1.section-title { font-size: 16px; padding-left: 10px; }
+            h2.sub-title { font-size: 13px; }
+            p { font-size: 12px; }
+
+            /* Stat grid — 2 columns on phone */
+            .stat-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+            .stat-card { padding: 12px 8px; }
+            .stat-card .num { font-size: 22px; }
+            .stat-card .lbl { font-size: 9px; }
+
+            /* Module cards — list view on phone */
+            .module-grid { grid-template-columns: 1fr; gap: 8px; }
+            .module-card { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; }
+            .module-card .icon { font-size: 20px; flex-shrink: 0; margin-bottom: 0; }
+            .module-card .name { font-size: 12px; }
+            .module-card .desc { font-size: 10px; }
+
+            /* Code blocks */
+            pre { font-size: 9.5px; padding: 10px 12px; }
+
+            /* Info boxes */
+            .info-box, .warn-box, .success-box { font-size: 11.5px; padding: 9px 11px; }
+
+            /* Arch diagram */
+            .arch-diagram { font-size: 9.5px; padding: 12px 10px; }
+
+            /* Footer */
+            .doc-footer { padding: 14px 12px; font-size: 10px; }
+
+            /* Print button */
+            .print-btn { bottom: 14px; right: 14px; padding: 9px 14px; font-size: 12px; }
+        }
+
+        /* ── Tablet (600–899px) ── */
+        @media (min-width: 600px) and (max-width: 899px) {
+            .cover { padding: 40px 24px; }
+            .cover h1 { font-size: 26px; }
+            .content { padding: 36px 28px; }
+            .toc-page { padding: 40px 28px; }
+            .stat-grid { grid-template-columns: repeat(2, 1fr); }
+            .module-grid { grid-template-columns: repeat(2, 1fr); }
+            .module-card { display: block; }
+            .module-card .icon { margin-bottom: 6px; }
+            pre { font-size: 11px; }
+        }
+
+        /* ── Desktop (≥900px) ── */
+        @media (min-width: 900px) {
+            .content { padding: 50px 80px; }
+            .toc-page { padding: 60px 80px; }
+            .stat-grid { grid-template-columns: repeat(4, 1fr); }
+            .module-grid { grid-template-columns: repeat(3, 1fr); }
+            .module-card { display: block; }
+            .module-card .icon { font-size: 22px; margin-bottom: 6px; }
+            pre { font-size: 11.5px; }
+        }
+    </style>
+
+</head>
+<body>
+
+<button class="print-btn" onclick="window.print()">🖨️ Print / Save PDF</button>
+
+<!-- ═══════════════════════════════════════════════
+     COVER PAGE
+══════════════════════════════════════════════════ -->
+<div class="cover">
+    <div class="logo">🏫</div>
+    <h1>School Management System</h1>
+    <p class="subtitle">Multi-Tenant SaaS Platform — Implementation Document</p>
+
+    <div class="meta-box">
+        <div class="meta-row">
+            <div class="meta-item">
+                <div class="meta-label">Version</div>
+                <div class="meta-value">1.0.0</div>
+            </div>
+            <div class="meta-item">
+                <div class="meta-label">Date</div>
+                <div class="meta-value">September 2026</div>
+            </div>
+            <div class="meta-item">
+                <div class="meta-label">Status</div>
+                <div class="meta-value">Production Ready</div>
+            </div>
+            <div class="meta-item">
+                <div class="meta-label">Platform</div>
+                <div class="meta-value">Amazon Web Services</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="badge-row">
+        <span class="badge">PHP 8.x</span>
+        <span class="badge">MySQL / AWS RDS</span>
+        <span class="badge">MVC Architecture</span>
+        <span class="badge">Multi-Tenant SaaS</span>
+        <span class="badge">Bootstrap 5</span>
+        <span class="badge">ALB Load Balanced</span>
+        <span class="badge">Tanzanian Education System</span>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     TABLE OF CONTENTS
+══════════════════════════════════════════════════ -->
+<div class="toc-page">
+    <h2>📋 Table of Contents</h2>
+    <ul class="toc-list">
+        <li><a href="#s1">1. Introduction</a></li>
+        <li><a href="#s2">2. System Overview</a></li>
+        <li><a href="#s3">3. Technology Stack</a></li>
+        <li><a href="#s4">4. System Architecture</a></li>
+        <li><a href="#s5">5. Database Design (28 Tables)</a></li>
+        <li><a href="#s6">6. Multi-Tenancy Strategy</a></li>
+        <li><a href="#s7">7. User Roles & Permissions</a></li>
+        <li><a href="#s8">8. Feature Modules (12 Modules)</a></li>
+        <li><a href="#s9">9. Security Implementation</a></li>
+        <li><a href="#s10">10. AWS Deployment & Load Balancing</a></li>
+        <li><a href="#s11">11. AzamPay Payment Integration</a></li>
+        <li><a href="#s12">12. Directory Structure</a></li>
+        <li><a href="#s13">13. Request Lifecycle</a></li>
+        <li><a href="#s14">14. Default Accounts</a></li>
+        <li><a href="#s15">15. Tanzanian Grading System</a></li>
+    </ul>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     SECTION 1 — INTRODUCTION
+══════════════════════════════════════════════════ -->
+<div class="content section-break" id="s1">
+    <h1 class="section-title">1. Introduction</h1>
+
+    <h2 class="sub-title">1.1 Purpose</h2>
+    <p>This document provides a comprehensive technical description of the <strong>School Management System (SMS)</strong>, a web-based Software-as-a-Service (SaaS) platform designed for the Tanzanian education system. The system allows multiple schools to manage their academic and administrative operations through a single shared platform.</p>
+
+    <h2 class="sub-title">1.2 Scope</h2>
+    <table>
+        <tr><th>Domain</th><th>Coverage</th></tr>
+        <tr><td>Academic Management</td><td>Classes, Subjects, Exams, Results, Timetables, Academic Years</td></tr>
+        <tr><td>People Management</td><td>Students, Teachers, Parents with role-based login accounts</td></tr>
+        <tr><td>Financial Management</td><td>Fee structures, Invoices, Payments, AzamPay mobile money</td></tr>
+        <tr><td>Communication</td><td>Announcements, Parent portal, Comment system</td></tr>
+        <tr><td>Platform Management</td><td>Multi-school registration, Subscriptions, Suspension</td></tr>
+        <tr><td>Infrastructure</td><td>AWS EC2, RDS, ALB, Database-backed sessions</td></tr>
+    </table>
+
+    <h2 class="sub-title">1.3 Target Users</h2>
+    <table>
+        <tr><th>User Type</th><th>Role</th><th>Access Level</th></tr>
+        <tr><td>System Administrator</td><td>Platform owner</td><td>All schools and subscriptions</td></tr>
+        <tr><td>School Administrator</td><td>School-level admin</td><td>Full control within their school</td></tr>
+        <tr><td>Teacher</td><td>Academic staff</td><td>Assigned classes, marks, attendance</td></tr>
+        <tr><td>Student</td><td>Enrolled learner</td><td>Own results, fees, timetable</td></tr>
+        <tr><td>Parent / Guardian</td><td>Child's guardian</td><td>Linked children's academic progress</td></tr>
+    </table>
+</div>
+
+<!-- SECTION 2 — OVERVIEW -->
+<div class="content section-break" id="s2">
+    <h1 class="section-title">2. System Overview</h1>
+
+    <div class="stat-grid">
+        <div class="stat-card"><div class="num">28</div><div class="lbl">Database Tables</div></div>
+        <div class="stat-card"><div class="num">18</div><div class="lbl">Controllers</div></div>
+        <div class="stat-card"><div class="num">16</div><div class="lbl">Models</div></div>
+        <div class="stat-card"><div class="num">12</div><div class="lbl">Feature Modules</div></div>
+    </div>
+
+    <h2 class="sub-title">2.1 Key Characteristics</h2>
+    <table>
+        <tr><th>Characteristic</th><th>Description</th></tr>
+        <tr><td><strong>Multi-Tenant</strong></td><td>Multiple schools share one application and one database</td></tr>
+        <tr><td><strong>Data Isolation</strong></td><td>Each school only sees its own data via <code>school_id</code> column scoping on every table</td></tr>
+        <tr><td><strong>Stateless App</strong></td><td>Sessions stored in database — fully compatible with AWS Load Balancer</td></tr>
+        <tr><td><strong>Role-Based Access</strong></td><td>6 distinct user roles with granular permission control</td></tr>
+        <tr><td><strong>Subscription Enforced</strong></td><td>Schools with expired subscriptions are automatically blocked at login</td></tr>
+        <tr><td><strong>Education System</strong></td><td>Built for Tanzania: Primary (Std I–VII) and Secondary (Form I–IV) grading</td></tr>
+    </table>
+</div>
+
+<!-- SECTION 3 — TECHNOLOGY STACK -->
+<div class="content section-break" id="s3">
+    <h1 class="section-title">3. Technology Stack</h1>
+
+    <table>
+        <tr><th colspan="2">Backend</th></tr>
+        <tr><td>Language</td><td>PHP 8.x (Pure Object-Oriented PHP)</td></tr>
+        <tr><td>Architecture</td><td>Custom MVC — no external framework (no Laravel/CodeIgniter)</td></tr>
+        <tr><td>Database Driver</td><td>PDO (PHP Data Objects) with prepared statements</td></tr>
+        <tr><td>Password Hashing</td><td>bcrypt via <code>password_hash()</code></td></tr>
+        <tr><td>Session Engine</td><td>Custom <code>DatabaseSessionHandler</code> implementing <code>SessionHandlerInterface</code></td></tr>
+    </table>
+
+    <table>
+        <tr><th colspan="2">Frontend</th></tr>
+        <tr><td>CSS Framework</td><td>Bootstrap 5 (Dark Theme)</td></tr>
+        <tr><td>JavaScript</td><td>Vanilla JS + jQuery</td></tr>
+        <tr><td>Icons</td><td>Bootstrap Icons</td></tr>
+        <tr><td>Responsive</td><td>Yes — mobile, tablet, desktop</td></tr>
+    </table>
+
+    <table>
+        <tr><th colspan="2">Infrastructure (AWS)</th></tr>
+        <tr><td>Compute</td><td>EC2 — Application servers (Apache + PHP-FPM)</td></tr>
+        <tr><td>Database</td><td>RDS — Managed MySQL (shared for all schools)</td></tr>
+        <tr><td>Load Balancer</td><td>ALB — Application Load Balancer</td></tr>
+        <tr><td>DNS</td><td>Route 53 (optional)</td></tr>
+        <tr><td>CDN</td><td>CloudFront for static assets (optional)</td></tr>
+    </table>
+</div>
+
+<!-- SECTION 4 — ARCHITECTURE -->
+<div class="content section-break" id="s4">
+    <h1 class="section-title">4. System Architecture</h1>
+
+    <h2 class="sub-title">4.1 MVC Pattern</h2>
+    <pre>
+Browser (HTTP Request)
+       │
+       ▼
+public/index.php  ──── Front Controller (single entry point)
+       │
+       ├── config/app.php          (constants, grading functions)
+       ├── config/database.php     (PDO Singleton)
+       ├── helpers/session.php     (DB-backed session start)
+       ├── helpers/auth.php        (guards, role checks)
+       └── config/routes.php       (URL → Controller mapping)
+              │
+              ▼  Route matched
+     ┌──────────────────┐
+     │   CONTROLLER     │  ← Business Logic
+     │  e.g. Student    │  ← requireRole(), requireLogin()
+     │  Controller.php  │
+     └──────┬─────┬─────┘
+            │     │
+     ┌──────▼─┐ ┌─▼───────────┐
+     │ MODEL  │ │    VIEW      │
+     │ PDO    │ │ PHP/HTML     │
+     │ MySQL  │ │ Bootstrap 5  │
+     └────────┘ └─────────────┘</pre>
+
+    <h2 class="sub-title">4.2 AWS Deployment Architecture</h2>
+    <div class="arch-diagram">
+        <span class="cyan">Internet → Route 53 → CloudFront (CDN)</span><br>
+        ↓<br>
+        <span class="yellow">━━━━━━━━━ Application Load Balancer (ALB) ━━━━━━━━━</span><br>
+        &nbsp;&nbsp;&nbsp;↙&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↓&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↘<br>
+        <span class="green">EC2 #1&nbsp;&nbsp;&nbsp;&nbsp;EC2 #2&nbsp;&nbsp;&nbsp;&nbsp;EC2 #3</span>&nbsp;&nbsp;← Apache + PHP-FPM<br>
+        &nbsp;&nbsp;&nbsp;↘&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↓&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↙<br>
+        <span class="cyan">━━━━━━━ AWS RDS (MySQL) ━━━━━━━</span><br>
+        &nbsp;&nbsp;&nbsp;Database: school_ms<br>
+        &nbsp;&nbsp;&nbsp;All schools + sessions stored here<br>
+        <span class="green">Multi-AZ → High Availability</span>
+    </div>
+
+    <div class="info-box">
+        <strong>Why this works for Load Balancing:</strong> Sessions are stored in RDS (not on local disk), so any EC2 instance can serve any request without the user losing their login state. The application has zero local state.
+    </div>
+</div>
+
+<!-- SECTION 5 — DATABASE -->
+<div class="content section-break" id="s5">
+    <h1 class="section-title">5. Database Design</h1>
+    <p>The system uses <strong>28 database tables</strong> in one MySQL database (<code>school_ms</code>). All major tables include a <code>school_id</code> column for multi-tenant data isolation.</p>
+
+    <h2 class="sub-title">5.1 Core Tables</h2>
+    <table>
+        <tr><th>Table</th><th>Purpose</th><th>Key Columns</th></tr>
+        <tr><td><code>roles</code></td><td>User role definitions</td><td>role_name, description</td></tr>
+        <tr><td><code>users</code></td><td>All user accounts</td><td>username, email, password, role_id, school_id</td></tr>
+        <tr><td><code>schools</code></td><td>School profiles</td><td>name, slug, email, phone, status (active/suspended/expired)</td></tr>
+        <tr><td><code>school_subscriptions</code></td><td>Billing records per school</td><td>school_id, plan, start_date, end_date, amount_paid, currency</td></tr>
+        <tr><td><code>sessions</code></td><td>Database-backed PHP sessions</td><td>id, data, last_accessed</td></tr>
+    </table>
+
+    <h2 class="sub-title">5.2 Academic Tables</h2>
+    <table>
+        <tr><th>Table</th><th>Purpose</th><th>Key Columns</th></tr>
+        <tr><td><code>academic_years</code></td><td>School calendar years</td><td>year_name, start_date, end_date, is_active</td></tr>
+        <tr><td><code>school_terms</code></td><td>Terms within academic years</td><td>academic_year_id, term_name, is_active</td></tr>
+        <tr><td><code>classes</code></td><td>Class / Form definitions</td><td>class_name, education_level (primary/secondary), section, capacity</td></tr>
+        <tr><td><code>subjects</code></td><td>Subject catalog per level</td><td>subject_name, subject_code, education_level</td></tr>
+        <tr><td><code>class_subjects</code></td><td>Pivot: subjects assigned to classes</td><td>class_id, subject_id</td></tr>
+        <tr><td><code>timetables</code></td><td>Weekly class schedules</td><td>class_id, subject_id, teacher_id, day_of_week, start_time, end_time</td></tr>
+    </table>
+
+    <h2 class="sub-title">5.3 People Tables</h2>
+    <table>
+        <tr><th>Table</th><th>Purpose</th><th>Key Columns</th></tr>
+        <tr><td><code>students</code></td><td>Student records</td><td>admission_number, first/last name, class_id, education_level, status</td></tr>
+        <tr><td><code>teachers</code></td><td>Teacher records</td><td>teacher_number, name, qualification, specialization</td></tr>
+        <tr><td><code>parents</code></td><td>Parent/Guardian records</td><td>name, phone, email, relationship (father/mother/guardian)</td></tr>
+        <tr><td><code>student_parents</code></td><td>Pivot: links parents to students</td><td>student_id, parent_id</td></tr>
+        <tr><td><code>teacher_subjects</code></td><td>Pivot: teacher subject assignments</td><td>teacher_id, subject_id</td></tr>
+        <tr><td><code>teacher_classes</code></td><td>Pivot: teacher class assignments</td><td>teacher_id, class_id, is_class_teacher</td></tr>
+    </table>
+
+    <h2 class="sub-title">5.4 Assessment & Finance Tables</h2>
+    <table>
+        <tr><th>Table</th><th>Purpose</th><th>Key Columns</th></tr>
+        <tr><td><code>exams</code></td><td>Exam definitions</td><td>exam_name, exam_type (midterm/terminal/annual), class_id, status</td></tr>
+        <tr><td><code>exam_results</code></td><td>Student marks per subject</td><td>exam_id, student_id, subject_id, marks_obtained, grade, points</td></tr>
+        <tr><td><code>attendance</code></td><td>Daily attendance records</td><td>student_id, date, status (present/absent/late)</td></tr>
+        <tr><td><code>fee_structures</code></td><td>Fee amounts per class/year</td><td>class_id, academic_year_id, term_id, amount</td></tr>
+        <tr><td><code>fee_payments</code></td><td>Payment receipts</td><td>student_id, amount_paid, payment_method, receipt_number</td></tr>
+        <tr><td><code>invoices</code></td><td>Student invoices</td><td>student_id, invoice_number, amount, amount_paid, status (pending/partial/paid)</td></tr>
+        <tr><td><code>payment_transactions</code></td><td>AzamPay mobile payment records</td><td>invoice_id, reference, provider, account_number, status</td></tr>
+        <tr><td><code>announcements</code></td><td>School announcements</td><td>title, body, audience (all/teachers/students/parents)</td></tr>
+        <tr><td><code>teacher_activity_logs</code></td><td>Audit trail of all actions</td><td>user_id, action_type, description, ip_address, request_url</td></tr>
+        <tr><td><code>parent_comments</code></td><td>Parent feedback on children</td><td>student_id, parent_id, comment</td></tr>
+    </table>
+</div>
+
+<!-- SECTION 6 — MULTI-TENANCY -->
+<div class="content section-break" id="s6">
+    <h1 class="section-title">6. Multi-Tenancy Strategy</h1>
+
+    <h2 class="sub-title">6.1 Approach: Shared Database, Row-Level Isolation</h2>
+    <p>All schools share a single database. A <code>school_id</code> column on every major table ensures each school can only access its own rows.</p>
+
+    <h2 class="sub-title">6.2 Login Flow</h2>
+    <pre>
+AuthController::login()
+    │
+    ├── 1. Find user by username in `users` table
+    │         └── Also try: admission number (student login)
+    │         └── Also try: child's admission number (parent login)
+    │
+    ├── 2. Verify password (bcrypt)
+    │
+    ├── 3. Load school: SELECT * FROM schools WHERE id = user.school_id
+    │         └── If status != 'active' → Error: "School suspended"
+    │
+    ├── 4. Check subscription: SELECT * FROM school_subscriptions
+    │         WHERE school_id = ? AND end_date >= CURDATE()
+    │         └── If no active subscription → Error: "Subscription expired"
+    │
+    └── 5. Set session: school_id, school_name, user_id, role, etc.</pre>
+
+    <h2 class="sub-title">6.3 Query Isolation</h2>
+    <pre>
+// helpers/auth.php
+function currentSchoolId(): ?int {
+    return isset($_SESSION['school_id']) ? (int)$_SESSION['school_id'] : null;
+}
+
+// Every model automatically adds school filter:
+$schoolId = currentSchoolId();
+$sql = "SELECT * FROM students WHERE deleted_at IS NULL";
+if ($schoolId) {
+    $sql .= " AND school_id = ?";
+    $params[] = $schoolId;
+}</pre>
+
+    <h2 class="sub-title">6.4 Subscription Plans</h2>
+    <table>
+        <tr><th>Plan</th><th>Description</th></tr>
+        <tr><td>Trial</td><td>Free limited period for new schools</td></tr>
+        <tr><td>Basic</td><td>Standard features with limited capacity</td></tr>
+        <tr><td>Premium</td><td>All features, moderate capacity</td></tr>
+        <tr><td>Enterprise</td><td>Unlimited capacity, priority support</td></tr>
+    </table>
+</div>
+
+<!-- SECTION 7 — ROLES -->
+<div class="content section-break" id="s7">
+    <h1 class="section-title">7. User Roles & Permissions</h1>
+
+    <table>
+        <tr><th>Role</th><th>Scope</th><th>Key Capabilities</th></tr>
+        <tr>
+            <td><strong>system_admin</strong></td>
+            <td>Platform-wide (no school)</td>
+            <td>Register schools, manage subscriptions, suspend/activate schools, view all schools</td>
+        </tr>
+        <tr>
+            <td><strong>super_admin</strong></td>
+            <td>Within one school</td>
+            <td>Full control: all students, teachers, exams, fees, reports, user management</td>
+        </tr>
+        <tr>
+            <td><strong>school_admin</strong></td>
+            <td>Within one school (scoped)</td>
+            <td>Admin functions; can be scoped to primary-only, secondary-only, or all levels</td>
+        </tr>
+        <tr>
+            <td><strong>teacher</strong></td>
+            <td>Within one school</td>
+            <td>Enter marks, record attendance, view assigned classes and subjects</td>
+        </tr>
+        <tr>
+            <td><strong>student</strong></td>
+            <td>Own record only</td>
+            <td>View own results, attendance, fees, invoices, timetable</td>
+        </tr>
+        <tr>
+            <td><strong>parent</strong></td>
+            <td>Linked children only</td>
+            <td>View children's results, attendance, fees; submit feedback comments</td>
+        </tr>
+    </table>
+
+    <h2 class="sub-title">Access Control Helpers</h2>
+    <pre>
+requireLogin();                           // Redirect to login if not authenticated
+requireRole('super_admin');               // Single role check
+requireRole(['super_admin','school_admin']); // Multi-role check
+requireScopeAccess('primary');            // Scope-level check for admins
+isSysAdmin();                             // Returns bool — true for system_admin
+isAdmin();                                // Returns bool — true for super_admin / school_admin
+currentSchoolId();                        // Returns int school_id from session</pre>
+</div>
+
+<!-- SECTION 8 — MODULES -->
+<div class="content section-break" id="s8">
+    <h1 class="section-title">8. Feature Modules</h1>
+
+    <div class="module-grid">
+        <div class="module-card"><div class="icon">🔐</div><div class="name">Authentication</div><div class="desc">Login (3 methods), CSRF, password management, subscription enforcement</div></div>
+        <div class="module-card"><div class="icon">🏫</div><div class="name">School Management</div><div class="desc">Multi-school registration, subscriptions, suspend/activate (System Admin)</div></div>
+        <div class="module-card"><div class="icon">👨‍🎓</div><div class="name">Students</div><div class="desc">Full CRUD, admission numbers, parent linking, auto login accounts</div></div>
+        <div class="module-card"><div class="icon">👩‍🏫</div><div class="name">Teachers</div><div class="desc">Full CRUD, subject/class assignment, login accounts</div></div>
+        <div class="module-card"><div class="icon">📝</div><div class="name">Examinations</div><div class="desc">Create exams, bulk/individual mark entry, auto-grading, divisions</div></div>
+        <div class="module-card"><div class="icon">📅</div><div class="name">Attendance</div><div class="desc">Daily recording per class, present/absent/late, date-range reports</div></div>
+        <div class="module-card"><div class="icon">💰</div><div class="name">Fee Management</div><div class="desc">Fee structures, payment recording, receipt generation, reports</div></div>
+        <div class="module-card"><div class="icon">🧾</div><div class="name">Invoices & Payments</div><div class="desc">Invoice generation, AzamPay USSD Push mobile payment integration</div></div>
+        <div class="module-card"><div class="icon">📅</div><div class="name">Timetable</div><div class="desc">Weekly schedule management, teacher-subject-time slot assignment</div></div>
+        <div class="module-card"><div class="icon">👨‍👩‍👧</div><div class="name">Parent Portal</div><div class="desc">Children's results, attendance, fees; feedback comment system</div></div>
+        <div class="module-card"><div class="icon">📊</div><div class="name">Reports</div><div class="desc">Students, teachers, attendance, exams, fees, class-level reports</div></div>
+        <div class="module-card"><div class="icon">🔍</div><div class="name">Audit Logs</div><div class="desc">All user actions logged with IP address, URL, timestamps</div></div>
+    </div>
+</div>
+
+<!-- SECTION 9 — SECURITY -->
+<div class="content section-break" id="s9">
+    <h1 class="section-title">9. Security Implementation</h1>
+
+    <table>
+        <tr><th>Threat</th><th>Countermeasure</th><th>Implementation</th></tr>
+        <tr><td>SQL Injection</td><td>Parameterized Queries</td><td>PDO prepared statements with <code>?</code> placeholders — no string concatenation</td></tr>
+        <tr><td>XSS (Cross-Site Scripting)</td><td>Output Encoding</td><td><code>htmlspecialchars()</code> on all user-generated output in views</td></tr>
+        <tr><td>CSRF</td><td>Token Validation</td><td>Hidden token on every form, validated server-side via <code>validateCsrfToken()</code></td></tr>
+        <tr><td>Password Exposure</td><td>Hashing</td><td><code>password_hash()</code> with bcrypt algorithm, verified via <code>password_verify()</code></td></tr>
+        <tr><td>Session Fixation</td><td>Session Regeneration</td><td><code>session_regenerate_id(true)</code> called on every successful login</td></tr>
+        <tr><td>Unauthorized Access</td><td>Role Guards</td><td><code>requireLogin()</code> and <code>requireRole()</code> at the top of every controller</td></tr>
+        <tr><td>Data Leakage Between Schools</td><td>Tenant Isolation</td><td><code>school_id</code> filter on every database query; system admin accounts have NULL school_id</td></tr>
+        <tr><td>Subscription Bypass</td><td>Login Enforcement</td><td>Subscription validity checked on every login — expired schools cannot access system</td></tr>
+        <tr><td>Input Tampering</td><td>Sanitization</td><td>Custom <code>sanitize()</code> helper applied to all form input before processing</td></tr>
+    </table>
+</div>
+
+<!-- SECTION 10 — AWS -->
+<div class="content section-break" id="s10">
+    <h1 class="section-title">10. AWS Deployment & Load Balancing</h1>
+
+    <h2 class="sub-title">10.1 Why Database Sessions?</h2>
+    <p>PHP normally saves session data as files on the local server disk. With a Load Balancer directing traffic across multiple EC2 instances, a user logged in on EC2 #1 would be logged out if redirected to EC2 #2 (their session file doesn't exist there).</p>
+
+    <div class="warn-box">
+        <strong>Problem (old approach):</strong> Sessions saved as files on EC2 local disk → Load Balancer breaks sessions
+    </div>
+    <div class="success-box">
+        <strong>Solution (implemented):</strong> Sessions saved to RDS MySQL → all EC2 instances share the same session data
+    </div>
+
+    <h2 class="sub-title">10.2 DatabaseSessionHandler</h2>
+    <p>A custom class <code>DatabaseSessionHandler</code> implements PHP's built-in <code>SessionHandlerInterface</code>:</p>
+    <table>
+        <tr><th>Method</th><th>SQL Operation</th></tr>
+        <tr><td><code>read($id)</code></td><td><code>SELECT data FROM sessions WHERE id = ?</code></td></tr>
+        <tr><td><code>write($id, $data)</code></td><td><code>INSERT ... ON DUPLICATE KEY UPDATE data = ?, last_accessed = NOW()</code></td></tr>
+        <tr><td><code>destroy($id)</code></td><td><code>DELETE FROM sessions WHERE id = ?</code></td></tr>
+        <tr><td><code>gc($maxLifetime)</code></td><td><code>DELETE FROM sessions WHERE last_accessed &lt; NOW() - INTERVAL ? SECOND</code></td></tr>
+    </table>
+
+    <h2 class="sub-title">10.3 Stateless Application Properties</h2>
+    <table>
+        <tr><th>Dependency</th><th>Status</th><th>Details</th></tr>
+        <tr><td>Session Files (local disk)</td><td>✅ Removed</td><td>All sessions stored in RDS via DatabaseSessionHandler</td></tr>
+        <tr><td>Local File Uploads</td><td>✅ Not Used</td><td>No file upload features — no local storage dependency</td></tr>
+        <tr><td>In-Memory State</td><td>✅ None</td><td>All state lives in MySQL — safe to run on multiple EC2 instances</td></tr>
+        <tr><td>Load Balancer Ready</td><td>✅ Yes</td><td>Any EC2 can serve any request transparently</td></tr>
+    </table>
+</div>
+
+<!-- SECTION 11 — PAYMENT -->
+<div class="content section-break" id="s11">
+    <h1 class="section-title">11. AzamPay Payment Integration</h1>
+
+    <h2 class="sub-title">11.1 Integration Type</h2>
+    <p>The system integrates with <strong>AzamPay USSD Push</strong> — a mobile money payment system used in Tanzania. Supported providers: <strong>M-Pesa, TigoPesa, Airtel Money, Halopesa</strong>.</p>
+
+    <h2 class="sub-title">11.2 Payment Flow</h2>
+    <table>
+        <tr><th>Step</th><th>Actor</th><th>Action</th></tr>
+        <tr><td>1</td><td>Student/Parent</td><td>Clicks "Pay Now" on invoice — selects provider, enters phone number</td></tr>
+        <tr><td>2</td><td>System</td><td>Creates <code>payment_transactions</code> record (status: initiated)</td></tr>
+        <tr><td>3</td><td>System → AzamPay</td><td>Sends USSD Push request to AzamPay API with amount + phone number</td></tr>
+        <tr><td>4</td><td>AzamPay → Phone</td><td>USSD prompt appears on student/parent's phone: "Enter PIN to pay TZS X,XXX"</td></tr>
+        <tr><td>5</td><td>Student/Parent</td><td>Enters PIN on phone to authorize payment</td></tr>
+        <tr><td>6</td><td>AzamPay → System</td><td>Sends webhook POST to <code>/api/azampay/webhook</code></td></tr>
+        <tr><td>7</td><td>System</td><td>Updates transaction status → "success"</td></tr>
+        <tr><td>8</td><td>System</td><td>Updates invoice <code>amount_paid</code>, creates <code>fee_payments</code> receipt</td></tr>
+    </table>
+
+    <h2 class="sub-title">11.3 API Endpoints</h2>
+    <table>
+        <tr><th>Endpoint</th><th>Method</th><th>Purpose</th></tr>
+        <tr><td><code>/api/azampay/checkout</code></td><td>POST</td><td>Initiate payment — sent from application to AzamPay</td></tr>
+        <tr><td><code>/api/azampay/webhook</code></td><td>POST</td><td>Receive payment confirmation callback from AzamPay</td></tr>
+    </table>
+
+    <div class="info-box">
+        <strong>Status:</strong> Mock implementation is in place and fully functional for testing. To go live, replace the mock API call in <code>PaymentController::checkout()</code> with actual AzamPay Merchant credentials and production endpoint URL.
+    </div>
+</div>
+
+<!-- SECTION 12 — DIRECTORY STRUCTURE -->
+<div class="content section-break" id="s12">
+    <h1 class="section-title">12. Directory Structure</h1>
+
+    <pre>
+school-management-system/
+│
+├── config/
+│   ├── app.php                    ← App constants, Tanzanian grading functions
+│   ├── database.php               ← PDO Singleton database connection
+│   └── routes.php                 ← URL → [Controller, method] mapping (50+ routes)
+│
+├── controllers/                   ← 18 Controllers
+│   ├── AuthController.php         ← Login, logout, password change, profile
+│   ├── DashboardController.php    ← Role-specific dashboard data
+│   ├── SchoolController.php       ← [SaaS] School + subscription management
+│   ├── StudentController.php      ← Student CRUD + parent linking
+│   ├── TeacherController.php      ← Teacher CRUD + class/subject assignment
+│   ├── ClassController.php        ← Class management
+│   ├── SubjectController.php      ← Subject management
+│   ├── ExamController.php         ← Exam creation, mark entry, results
+│   ├── AttendanceController.php   ← Daily attendance recording
+│   ├── FeeController.php          ← Fee structures + payment recording
+│   ├── InvoiceController.php      ← Invoice generation and tracking
+│   ├── PaymentController.php      ← AzamPay USSD Push integration
+│   ├── TimetableController.php    ← Weekly timetable
+│   ├── AcademicYearController.php ← Academic years + terms
+│   ├── ParentController.php       ← Parent portal + feedback comments
+│   ├── UserController.php         ← User account management
+│   ├── ReportController.php       ← Reports
+│   └── AuditController.php        ← Activity log viewer
+│
+├── models/                        ← 16 Models (DB access layer)
+│   ├── School.php                 ← Schools + subscriptions CRUD
+│   ├── User.php
+│   ├── Student.php                ← school_id scoped
+│   ├── Teacher.php                ← school_id scoped
+│   ├── SchoolClass.php            ← school_id scoped
+│   ├── Subject.php                ← school_id scoped
+│   ├── Exam.php / ExamResult.php
+│   ├── Attendance.php
+│   ├── Fee.php / Invoice.php
+│   ├── PaymentTransaction.php
+│   ├── Timetable.php
+│   ├── AcademicYear.php
+│   ├── ParentComment.php
+│   └── ActivityLog.php
+│
+├── views/                         ← 17 View directories
+│   ├── layouts/                   ← header.php (sidebar+nav), footer.php
+│   ├── auth/                      ← login, profile, change_password
+│   ├── dashboard/                 ← admin, teacher, student, parent
+│   ├── schools/                   ← [SaaS] index, create, edit
+│   └── ...students, teachers, classes, subjects, exams, fees, etc.
+│
+├── helpers/
+│   ├── session.php                ← Registers DatabaseSessionHandler, starts session
+│   ├── DatabaseSessionHandler.php ← [ALB] Custom PHP SessionHandlerInterface
+│   ├── auth.php                   ← Guards: requireLogin, requireRole, currentSchoolId
+│   └── functions.php              ← sanitize(), redirect(), flash messages, etc.
+│
+├── database/
+│   └── schema.sql                 ← Complete DB schema (28 tables)
+│
+├── migrations/
+│   ├── multi_tenant_saas.php      ← Creates schools, subscriptions, adds school_id
+│   ├── create_sessions_table.php  ← Creates sessions table for ALB support
+│   └── create_parent_comments.php
+│
+└── public/
+    └── index.php                  ← Single entry point (Front Controller)</pre>
+</div>
+
+<!-- SECTION 13 — LIFECYCLE -->
+<div class="content section-break" id="s13">
+    <h1 class="section-title">13. Request Lifecycle</h1>
+
+    <pre>
+USER opens: https://domain.com/school-management-system/public/students
+                │
+                │ .htaccess rewrites to public/index.php?url=students
+                ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    public/index.php (Front Controller)                  │
+│                                                                         │
+│  Step 1: Bootstrap                                                      │
+│    require config/app.php         → APP_NAME, BASE_URL, grading fns    │
+│    require config/database.php    → PDO Singleton ready                 │
+│    require helpers/session.php    → Register DatabaseSessionHandler     │
+│    require helpers/auth.php       → requireLogin, requireRole, etc.     │
+│    require helpers/functions.php  → sanitize, redirect, flash, etc.     │
+│                                                                         │
+│  Step 2: Session Start                                                  │
+│    startSession()                 → DatabaseSessionHandler::read()      │
+│                                   → SELECT data FROM sessions WHERE id=?│
+│                                   → $_SESSION loaded from RDS           │
+│                                                                         │
+│  Step 3: Route Resolution                                               │
+│    require config/routes.php      → load $routes array                  │
+│    $url = 'students'              → match $routes['students']            │
+│    → ['StudentController', 'index']                                     │
+│                                                                         │
+│  Step 4: Controller Dispatch                                            │
+│    require controllers/StudentController.php                            │
+│    $controller = new StudentController()                                │
+│      → __construct() → requireRole(['super_admin','school_admin'])      │
+│        → Checks $_SESSION['role'] → OK                                  │
+│    $controller->index()                                                 │
+│                                                                         │
+│  Step 5: Model + View                                                   │
+│    $model = new Student()                                               │
+│    $students = $model->getAll()                                         │
+│      → SQL: SELECT ... WHERE deleted_at IS NULL AND school_id = 1       │
+│      → Returns only current school's students                           │
+│    require views/layouts/header.php  (sidebar + navbar)                 │
+│    require views/students/index.php  (student table)                    │
+│    require views/layouts/footer.php  (Bootstrap JS)                     │
+└─────────────────────────────────────────────────────────────────────────┘
+                │
+                ▼
+        HTML Response → Browser</pre>
+</div>
+
+<!-- SECTION 14 — ACCOUNTS -->
+<div class="content" id="s14">
+    <h1 class="section-title">14. Default Accounts</h1>
+
+    <table>
+        <tr><th>Role</th><th>Username</th><th>Password</th><th>Access</th></tr>
+        <tr>
+            <td><strong>System Admin</strong></td>
+            <td><code>sysadmin</code></td>
+            <td><code>SysAdmin@2024</code></td>
+            <td>Schools management page (<code>/schools</code>) — no school dashboard</td>
+        </tr>
+        <tr>
+            <td><strong>School Admin</strong></td>
+            <td><em>Set when registering school</em></td>
+            <td><em>Set when registering school</em></td>
+            <td>Full school dashboard and management</td>
+        </tr>
+    </table>
+
+    <div class="warn-box">
+        ⚠️ <strong>Important:</strong> Change the default <code>sysadmin</code> password immediately after first login in production.
+    </div>
+</div>
+
+<!-- SECTION 15 — GRADING -->
+<div class="content section-break" id="s15">
+    <h1 class="section-title">15. Tanzanian Grading System</h1>
+
+    <h2 class="sub-title">15.1 Primary Education (Standard I–VII)</h2>
+    <table>
+        <tr><th>Marks Range</th><th>Grade</th><th>Remarks</th></tr>
+        <tr><td>81 – 100</td><td><strong>A</strong></td><td>Excellent</td></tr>
+        <tr><td>61 – 80</td><td><strong>B</strong></td><td>Very Good</td></tr>
+        <tr><td>41 – 60</td><td><strong>C</strong></td><td>Good</td></tr>
+        <tr><td>21 – 40</td><td><strong>D</strong></td><td>Satisfactory</td></tr>
+        <tr><td>0 – 20</td><td><strong>F</strong></td><td>Fail</td></tr>
+    </table>
+
+    <h2 class="sub-title">15.2 Secondary Education (Form I–IV)</h2>
+    <table>
+        <tr><th>Marks Range</th><th>Grade</th><th>Points</th><th>Remarks</th></tr>
+        <tr><td>75 – 100</td><td><strong>A</strong></td><td>1</td><td>Excellent</td></tr>
+        <tr><td>65 – 74</td><td><strong>B+</strong></td><td>2</td><td>Very Good</td></tr>
+        <tr><td>55 – 64</td><td><strong>B</strong></td><td>3</td><td>Good</td></tr>
+        <tr><td>45 – 54</td><td><strong>C</strong></td><td>4</td><td>Satisfactory</td></tr>
+        <tr><td>30 – 44</td><td><strong>D</strong></td><td>5</td><td>Pass</td></tr>
+        <tr><td>0 – 29</td><td><strong>F</strong></td><td>7</td><td>Fail</td></tr>
+    </table>
+
+    <h2 class="sub-title">15.3 Division Calculation (Best 7 Subjects)</h2>
+    <table>
+        <tr><th>Total Points (Best 7 Subjects)</th><th>Division</th><th>Meaning</th></tr>
+        <tr><td>7 – 17</td><td><strong>Division I</strong></td><td>First Class Pass</td></tr>
+        <tr><td>18 – 21</td><td><strong>Division II</strong></td><td>Second Class Pass</td></tr>
+        <tr><td>22 – 25</td><td><strong>Division III</strong></td><td>Third Class Pass</td></tr>
+        <tr><td>26 – 33</td><td><strong>Division IV</strong></td><td>Fourth Class Pass</td></tr>
+        <tr><td>34+</td><td><strong>Division 0</strong></td><td>Fail</td></tr>
+    </table>
+</div>
+
+<!-- FOOTER -->
+<div class="doc-footer">
+    <p><strong>School Management System — Implementation Document</strong> &nbsp;|&nbsp; Version 1.0.0 &nbsp;|&nbsp; September 2026</p>
+    <p style="margin-top:6px;">Multi-Tenant SaaS Platform | PHP 8 | MySQL (AWS RDS) | Bootstrap 5 | AWS Load Balanced</p>
+</div>
+
+</body>
+</html>

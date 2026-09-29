@@ -8,8 +8,13 @@ class Teacher {
 
     public function getAll($search = '', $status = '', $page = 1, $perPage = 10) {
         $offset = ($page - 1) * $perPage;
+        $schoolId = currentSchoolId();
         $sql = "SELECT t.*, u.username, u.email as user_email FROM teachers t LEFT JOIN users u ON t.user_id = u.id WHERE t.deleted_at IS NULL";
         $params = [];
+        if ($schoolId) {
+            $sql .= " AND t.school_id = ?";
+            $params[] = $schoolId;
+        }
         if (!empty($search)) {
             $sql .= " AND (t.first_name LIKE ? OR t.last_name LIKE ? OR t.teacher_number LIKE ?)";
             $params[] = "%$search%";
@@ -27,8 +32,13 @@ class Teacher {
     }
 
     public function getCount($search = '', $status = '') {
+        $schoolId = currentSchoolId();
         $sql = "SELECT COUNT(*) as count FROM teachers t WHERE t.deleted_at IS NULL";
         $params = [];
+        if ($schoolId) {
+            $sql .= " AND t.school_id = ?";
+            $params[] = $schoolId;
+        }
         if (!empty($search)) {
             $sql .= " AND (t.first_name LIKE ? OR t.last_name LIKE ? OR t.teacher_number LIKE ?)";
             $params[] = "%$search%";
@@ -57,7 +67,8 @@ class Teacher {
     }
 
     public function create($data) {
-        $stmt = $this->db->prepare("INSERT INTO teachers (user_id, teacher_number, first_name, last_name, gender, phone, email, qualification, specialization, status, join_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $schoolId = currentSchoolId() ?? 1;
+        $stmt = $this->db->prepare("INSERT INTO teachers (user_id, teacher_number, first_name, last_name, gender, phone, email, qualification, specialization, status, join_date, school_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $stmt->execute([
             $data['user_id'] ?? null,
             $data['teacher_number'],
@@ -69,7 +80,8 @@ class Teacher {
             $data['qualification'],
             $data['specialization'] ?? null,
             $data['status'] ?? 'active',
-            $data['join_date'] ?? date('Y-m-d')
+            $data['join_date'] ?? date('Y-m-d'),
+            $schoolId
         ]);
         return $this->db->lastInsertId();
     }

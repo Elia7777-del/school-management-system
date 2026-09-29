@@ -8,8 +8,15 @@ class Student {
 
     public function getAll($search = '', $classId = '', $educationLevel = '', $status = '', $page = 1, $perPage = 10) {
         $offset = ($page - 1) * $perPage;
+        $schoolId = currentSchoolId();
         $sql = "SELECT s.*, c.class_name, c.section FROM students s LEFT JOIN classes c ON s.class_id = c.id WHERE s.deleted_at IS NULL";
         $params = [];
+
+        // Multi-tenant: scope to current school
+        if ($schoolId) {
+            $sql .= " AND s.school_id = ?";
+            $params[] = $schoolId;
+        }
 
         // Enforce admin scope: scoped admins can only see their level
         $scope = $_SESSION['admin_scope'] ?? 'all';
@@ -45,8 +52,14 @@ class Student {
     }
 
     public function getCount($search = '', $classId = '', $educationLevel = '', $status = '') {
+        $schoolId = currentSchoolId();
         $sql = "SELECT COUNT(*) as count FROM students s WHERE s.deleted_at IS NULL";
         $params = [];
+
+        if ($schoolId) {
+            $sql .= " AND s.school_id = ?";
+            $params[] = $schoolId;
+        }
 
         // Enforce admin scope
         $scope = $_SESSION['admin_scope'] ?? 'all';
@@ -93,7 +106,8 @@ class Student {
     }
 
     public function create($data) {
-        $stmt = $this->db->prepare("INSERT INTO students (user_id, admission_number, first_name, middle_name, last_name, gender, date_of_birth, class_id, education_level, phone, address, admission_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $schoolId = currentSchoolId() ?? 1;
+        $stmt = $this->db->prepare("INSERT INTO students (user_id, admission_number, first_name, middle_name, last_name, gender, date_of_birth, class_id, education_level, phone, address, admission_date, school_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $stmt->execute([
             $data['user_id'] ?? null,
             $data['admission_number'],
@@ -106,7 +120,8 @@ class Student {
             $data['education_level'],
             $data['phone'] ?? null,
             $data['address'] ?? null,
-            $data['admission_date']
+            $data['admission_date'],
+            $schoolId
         ]);
         return $this->db->lastInsertId();
     }

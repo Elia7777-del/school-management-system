@@ -133,4 +133,13 @@ $routes = [
     'parent/dashboard'          => ['ParentController', 'dashboard'],
     'parent/store-comment'      => ['ParentController', 'storeComment'],
     'parent/delete-comment'     => ['ParentController', 'deleteComment'],
+
+    // ─── School & Subscription Management (System Admin) ────────
+    'schools'                   => ['SchoolController', 'index'],
+    'schools/create'            => ['SchoolController', 'create'],
+    'schools/store'             => ['SchoolController', 'store'],
+    'schools/edit'              => ['SchoolController', 'edit'],
+    'schools/update'            => ['SchoolController', 'update'],
+    'schools/toggle-status'     => ['SchoolController', 'toggleStatus'],
+    'schools/add-subscription'  => ['SchoolController', 'addSubscription'],
 ];

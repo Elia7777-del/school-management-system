@@ -22,6 +22,11 @@ class DashboardController {
         $role = currentUserRole();
         $user_id = currentUserId();
 
+        // System admin has no school dashboard — redirect to school management
+        if ($role === 'system_admin') {
+            redirect('schools');
+        }
+
         // Load active academic year
         $activeYear = getActiveAcademicYear($this->db);
         $activeTerm = getActiveSchoolTerm($this->db);

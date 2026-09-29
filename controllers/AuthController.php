@@ -68,14 +68,48 @@ class AuthController {
 
             if ($user && password_verify($password, $user['password'])) {
                 if ($user['status'] !== 'active') {
-                    setFlash('error', 'Your account has been deactivated.');
+                    setFlash('error', 'Your account has been deactivated. Contact your administrator.');
                     redirect('login');
                 }
 
+                $db = Database::getInstance()->getConnection();
+                $school = null;
+
+                // For non-system-admin users, load school and check subscription
+                if (!empty($user['school_id'])) {
+                    $stmt = $db->prepare("SELECT * FROM schools WHERE id = ?");
+                    $stmt->execute([$user['school_id']]);
+                    $school = $stmt->fetch();
+
+                    if (!$school || $school['status'] !== 'active') {
+                        setFlash('error', 'Your school account is suspended or inactive. Please contact the platform administrator.');
+                        redirect('login');
+                    }
+
+                    // Check active subscription
+                    $subStmt = $db->prepare("
+                        SELECT * FROM school_subscriptions 
+                        WHERE school_id = ? AND end_date >= CURDATE() 
+                        ORDER BY end_date DESC LIMIT 1
+                    ");
+                    $subStmt->execute([$user['school_id']]);
+                    $subscription = $subStmt->fetch();
+
+                    if (!$subscription) {
+                        setFlash('error', 'Your school\'s subscription has expired. Please contact the platform administrator.');
+                        redirect('login');
+                    }
+                }
+
                 $this->userModel->updateLastLogin($user['id']);
-                setUserSession($user);
+                setUserSession($user, $school);
                 clearOldInput();
-                logActivity('login', 'User logged in: ' . $user['username'] . ' (Role: ' . $user['role_name'] . ')');
+                logActivity('login', 'User logged in: ' . $user['username'] . ' (Role: ' . ($user['role_name'] ?? '') . ')');
+
+                // System admin goes to schools management page
+                if (($user['role_name'] ?? '') === 'system_admin') {
+                    redirect('schools');
+                }
                 redirect('dashboard');
             } else {
                 setFlash('error', 'Invalid username or password.');

@@ -145,7 +145,21 @@
                     </li>
                 <?php endif; ?>
 
+                <?php if (isSysAdmin()): ?>
+                    <li class="nav-item">
+                        <a href="<?php echo BASE_URL; ?>/schools" class="nav-link <?php echo isActiveMenu('schools'); ?>">
+                            <i class="bi bi-building me-3 text-cyan"></i> Schools
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="<?php echo BASE_URL; ?>/schools/create" class="nav-link <?php echo isActiveMenu('schools/create'); ?>">
+                            <i class="bi bi-building-add me-3 text-success"></i> Register School
+                        </a>
+                    </li>
+                <?php endif; ?>
+
                 <li class="sidebar-divider my-3"></li>
+
 
                 <li class="nav-item">
                     <a href="<?php echo BASE_URL; ?>/profile" class="nav-link <?php echo isActiveMenu('profile'); ?>">
