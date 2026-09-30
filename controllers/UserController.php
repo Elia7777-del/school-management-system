@@ -47,34 +47,51 @@ class UserController {
                 redirect('users');
             }
 
-            $userId = $this->userModel->create($data);
+            try {
+                $userId = $this->userModel->create($data);
 
-            // If the role is "parent", also create a record in the parents table
-            $db = Database::getInstance()->getConnection();
-            $roleStmt = $db->prepare("SELECT role_name FROM roles WHERE id = ?");
-            $roleStmt->execute([$data['role_id']]);
-            $role = $roleStmt->fetch();
+                // If the role is "parent", also create a record in the parents table
+                $db = Database::getInstance()->getConnection();
+                $roleStmt = $db->prepare("SELECT role_name FROM roles WHERE id = ?");
+                $roleStmt->execute([$data['role_id']]);
+                $role = $roleStmt->fetch();
 
-            if ($role && $role['role_name'] === 'parent') {
-                // Extract first/last name from username
-                $nameParts = explode(' ', $data['username'], 2);
-                $firstName = ucfirst($nameParts[0]);
-                $lastName  = isset($nameParts[1]) ? ucfirst($nameParts[1]) : '';
-                $schoolId  = currentSchoolId() ?? 1;
+                if ($role && $role['role_name'] === 'parent') {
+                    // Extract first/last name from username
+                    $nameParts = explode(' ', trim($data['username']), 2);
+                    $firstName = ucfirst($nameParts[0]);
+                    $lastName  = isset($nameParts[1]) && !empty($nameParts[1]) ? ucfirst($nameParts[1]) : $firstName;
+                    $schoolId  = currentSchoolId() ?? 1;
 
-                // Check if parents record already exists for this user
-                $checkStmt = $db->prepare("SELECT id FROM parents WHERE user_id = ?");
-                $checkStmt->execute([$userId]);
-                if (!$checkStmt->fetch()) {
-                    $insertStmt = $db->prepare("
-                        INSERT INTO parents (user_id, first_name, last_name, phone, email, relationship, school_id)
-                        VALUES (?, ?, ?, '', ?, 'guardian', ?)
-                    ");
-                    $insertStmt->execute([$userId, $firstName, $lastName, $data['email'], $schoolId]);
+                    // Check if parents record already exists for this user
+                    $checkStmt = $db->prepare("SELECT id FROM parents WHERE user_id = ?");
+                    $checkStmt->execute([$userId]);
+                    if (!$checkStmt->fetch()) {
+                        try {
+                            $insertStmt = $db->prepare("
+                                INSERT INTO parents (user_id, first_name, last_name, phone, email, relationship, school_id)
+                                VALUES (?, ?, ?, '', ?, 'guardian', ?)
+                            ");
+                            $insertStmt->execute([$userId, $firstName, $lastName, $data['email'], $schoolId]);
+                        } catch (PDOException $pe) {
+                            if (strpos($pe->getMessage(), "Unknown column 'school_id'") !== false) {
+                                $insertStmt = $db->prepare("
+                                    INSERT INTO parents (user_id, first_name, last_name, phone, email, relationship)
+                                    VALUES (?, ?, ?, '', ?, 'guardian')
+                                ");
+                                $insertStmt->execute([$userId, $firstName, $lastName, $data['email']]);
+                            } else {
+                                throw $pe;
+                            }
+                        }
+                    }
                 }
-            }
 
-            setFlash('success', 'User account created successfully.');
+                setFlash('success', 'User account created successfully.');
+            } catch (Exception $e) {
+                error_log("Error creating user: " . $e->getMessage());
+                setFlash('error', 'Error: ' . $e->getMessage());
+            }
             redirect('users');
         }
     }
