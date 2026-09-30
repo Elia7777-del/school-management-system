@@ -47,13 +47,15 @@ class User {
     }
 
     public function create($data) {
-        $stmt = $this->db->prepare("INSERT INTO users (username, email, password, role_id, status) VALUES (?, ?, ?, ?, ?)");
+        $schoolId = isset($data['school_id']) ? $data['school_id'] : (function_exists('currentSchoolId') ? currentSchoolId() : null);
+        $stmt = $this->db->prepare("INSERT INTO users (username, email, password, role_id, status, school_id) VALUES (?, ?, ?, ?, ?, ?)");
         $stmt->execute([
             $data['username'],
             $data['email'],
             password_hash($data['password'], PASSWORD_BCRYPT),
             $data['role_id'],
-            $data['status'] ?? 'active'
+            $data['status'] ?? 'active',
+            $schoolId
         ]);
         return $this->db->lastInsertId();
     }

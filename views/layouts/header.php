@@ -183,22 +183,27 @@
     <!-- Main Wrapper -->
     <div class="main-wrapper" id="main-wrapper">
         <!-- Top Navbar -->
-        <header class="top-navbar d-flex align-items-center justify-content-between px-4">
-            <div class="d-flex align-items-center">
-                <button class="btn btn-link text-white d-md-none p-0 me-3" id="sidebar-toggle">
-                    <i class="bi bi-list fs-3"></i>
+        <header class="top-navbar d-flex align-items-center justify-content-between px-3 px-md-4">
+            <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-link text-white d-md-none p-0" id="sidebar-toggle" aria-label="Open menu">
+                    <i class="bi bi-list fs-2"></i>
                 </button>
-                <h4 class="page-title text-white mb-0"><?php echo isset($pageTitle) ? $pageTitle : 'Dashboard'; ?></h4>
+                <h5 class="page-title text-white mb-0 fs-6 fs-md-5"><?php echo isset($pageTitle) ? $pageTitle : 'Dashboard'; ?></h5>
             </div>
 
             <div class="d-flex align-items-center">
                 <div class="dropdown">
-                    <button class="btn btn-link text-white text-decoration-none dropdown-toggle d-flex align-items-center p-0" type="button" data-bs-toggle="dropdown">
-                        <span class="d-none d-md-inline me-2 text-muted">Hello,</span>
-                        <span class="text-white fw-medium me-2"><?php echo currentUser()['username']; ?></span>
-                        <span class="badge bg-cyan text-dark"><?php echo ucfirst(str_replace('_', ' ', currentUser()['role'])); ?></span>
+                    <button class="btn btn-link text-white text-decoration-none dropdown-toggle d-flex align-items-center p-0 gap-1" type="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-person-circle fs-5 d-md-none"></i>
+                        <span class="d-none d-md-inline text-muted small">Hello,</span>
+                        <span class="text-white fw-medium d-none d-sm-inline small"><?php echo currentUser()['username']; ?></span>
+                        <span class="badge bg-cyan text-dark d-none d-sm-inline"><?php echo ucfirst(str_replace('_', ' ', currentUser()['role'])); ?></span>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 bg-dark-card mt-2">
+                        <li class="d-sm-none px-3 py-2 border-bottom border-secondary">
+                            <div class="text-white fw-medium"><?php echo currentUser()['username']; ?></div>
+                            <div class="text-muted small"><?php echo ucfirst(str_replace('_', ' ', currentUser()['role'])); ?></div>
+                        </li>
                         <li><a class="dropdown-item text-white" href="<?php echo BASE_URL; ?>/profile"><i class="bi bi-person me-2"></i> Profile</a></li>
                         <li><a class="dropdown-item text-white" href="<?php echo BASE_URL; ?>/change-password"><i class="bi bi-shield-lock me-2"></i> Change Password</a></li>
                         <li><hr class="dropdown-divider border-secondary"></li>
@@ -209,7 +214,9 @@
         </header>
 
         <!-- Page Content -->
-        <main class="page-content p-4">
+        <main class="page-content p-3 p-md-4">
             <!-- Flash Messages -->
             <?php echo displayFlashMessages(); ?>
 <?php endif; ?>
+
+

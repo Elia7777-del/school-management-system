@@ -40,14 +40,22 @@ class StudentController {
         $db = Database::getInstance()->getConnection();
         
         // Fetch parents list for dropdown
-        $stmt = $db->query("
+        $schoolId = currentSchoolId();
+        $parentSql = "
             SELECT p.id, p.first_name, p.last_name, p.relationship, p.phone,
                    u.username
             FROM parents p
-            JOIN users u ON p.user_id = u.id
-            WHERE p.deleted_at IS NULL AND u.deleted_at IS NULL
-            ORDER BY p.first_name, p.last_name
-        ");
+            LEFT JOIN users u ON p.user_id = u.id
+            WHERE p.deleted_at IS NULL
+        ";
+        $parentParams = [];
+        if ($schoolId) {
+            $parentSql .= " AND p.school_id = ?";
+            $parentParams[] = $schoolId;
+        }
+        $parentSql .= " ORDER BY p.first_name, p.last_name";
+        $stmt = $db->prepare($parentSql);
+        $stmt->execute($parentParams);
         $parents = $stmt->fetchAll();
 
         $suggestedAdmNumber = generateAdmissionNumber($db);
@@ -145,14 +153,22 @@ class StudentController {
         $studentUsers = $stmt->fetchAll();
 
         // Fetch parents list — only from the parents table (these have proper parent IDs for linking)
-        $stmt = $db->query("
+        $schoolId = currentSchoolId();
+        $parentSql = "
             SELECT p.id, p.first_name, p.last_name, p.relationship, p.phone,
                    u.username
             FROM parents p
-            JOIN users u ON p.user_id = u.id
-            WHERE p.deleted_at IS NULL AND u.deleted_at IS NULL
-            ORDER BY p.first_name, p.last_name
-        ");
+            LEFT JOIN users u ON p.user_id = u.id
+            WHERE p.deleted_at IS NULL
+        ";
+        $parentParams = [];
+        if ($schoolId) {
+            $parentSql .= " AND p.school_id = ?";
+            $parentParams[] = $schoolId;
+        }
+        $parentSql .= " ORDER BY p.first_name, p.last_name";
+        $stmt = $db->prepare($parentSql);
+        $stmt->execute($parentParams);
         $parents = $stmt->fetchAll();
 
         // Get currently linked parent ID
