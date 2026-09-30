@@ -106,7 +106,7 @@ class StudentController {
             if (!empty($_POST['create_account'])) {
                 $username = sanitize($_POST['username'] ?? '');
                 $email = sanitize($_POST['email'] ?? '');
-                $password = $_POST['password'] ?? 'Student@123';
+                $password = !empty($_POST['password']) ? $_POST['password'] : 'Student@123';
 
                 if (empty($username) || empty($email)) {
                     setFlash('error', 'Username and email are required for account creation.');

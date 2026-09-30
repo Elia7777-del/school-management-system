@@ -100,7 +100,7 @@
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label text-muted">Password</label>
-                                <input type="password" class="form-control" name="password" value="Student@123">
+                                <input type="password" class="form-control" name="password" placeholder="Default: Student@123" autocomplete="new-password">
                             </div>
                         </div>
                     </div>
