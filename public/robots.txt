@@ -1,0 +1,20 @@
+User-agent: *
+Allow: /
+Allow: /login
+Allow: /about
+
+# Disallow administrative and private areas
+Disallow: /dashboard
+Disallow: /users
+Disallow: /students
+Disallow: /teachers
+Disallow: /classes
+Disallow: /subjects
+Disallow: /attendance
+Disallow: /exams
+Disallow: /fees
+Disallow: /invoices
+Disallow: /reports
+Disallow: /schools
+
+Sitemap: https://school-mon.duckdns.org/sitemap.xml
